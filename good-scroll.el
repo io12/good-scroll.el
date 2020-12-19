@@ -63,20 +63,21 @@
         (cancel-timer good-scroll--timer)))))
 
 (defun good-scroll-up (&optional delta)
-  "Scroll up DELTA steps when `good-scroll-mode' is enabled.
+  "Scroll up DELTA steps.
 The default DELTA value is 1."
   (interactive)
   (good-scroll--update (or delta 1)))
 
 (defun good-scroll-down (&optional delta)
-  "Scroll down DELTA steps when `good-scroll-mode' is enabled.
+  "Scroll down DELTA steps.
 The default DELTA value is 1."
   (interactive)
   (good-scroll--update (- (or delta 1))))
 
 (defun good-scroll--update (delta)
-  "Begin a scroll up by DELTA steps. A negative DELTA means to scroll down.
-This is a helper function for `good-scroll-up' and `good-scroll-down'."
+  "Begin a scroll up by DELTA steps.
+A negative DELTA means to scroll down. This is a helper function for
+`good-scroll-up' and `good-scroll-down'."
   (unless (input-pending-p)
     (setq good-scroll--destination
           (+ (* delta good-scroll-step)
@@ -90,7 +91,8 @@ This is a helper function for `good-scroll-up' and `good-scroll-down'."
           good-scroll--window (selected-window))))
 
 (defun good-scroll--render ()
-  "Update the window's vscroll and position in the buffer based on the scroll
+  "Render an in-progress scroll.
+Update the window's vscroll and position in the buffer based on the scroll
 progress. This is called by the timer `good-scroll--timer' every
 `good-scroll-render-rate' seconds."
   (when (eq (selected-window) good-scroll--window)
@@ -107,7 +109,8 @@ progress. This is called by the timer `good-scroll--timer' every
         (good-scroll--go-to position-next)))))
 
 (defun good-scroll--go-to (pos)
-  "Update the window's vscroll and position in the buffer to instantly scroll to
+  "Jump the window by POS pixel lines.
+Update the window's vscroll and position in the buffer to instantly scroll to
 POS, where POS is the index from the top of the window in pixel lines. POS can
 be negative."
   (while (/= pos 0)
@@ -126,7 +129,13 @@ be negative."
               (good-scroll--go-to-down pos vscroll))))))
 
 (defun good-scroll--go-to-up (pos vscroll line-height rem)
-  "One step of scrolling up in `good-scroll--go-to'"
+  "Partially jump the window up by POS pixel lines.
+Return the remaining number of pixel lines to scroll.
+
+The parameter VSCROLL is the selected window's vscroll,
+LINE-HEIGHT is the height in pixels of the first line in the selected window,
+and REM is the number of pixel lines from the vscroll to the end of the first
+line in the selected window."
   (if (< (+ vscroll pos) line-height)
       ;; Done scrolling except for a fraction of a line.
       ;; Scroll a fraction of a line and terminate.
@@ -135,18 +144,19 @@ be negative."
     (good-scroll--go-to-up-full pos rem)))
 
 (defun good-scroll--go-to-up-partial (pos vscroll)
-  "Assuming VSCROLL + POS is less than the pixel height of the current line and
-the current window's vscroll is VSCROLL, increase the current window's vscroll
-by POS pixels. This function returns zero."
+  "Increase the current window's vscroll by POS pixels.
+Return zero. Assume VSCROLL + POS is less than the pixel height of the current
+line and the current window's vscroll is VSCROLL."
   ;; Don't scroll if the last line is at the top of the window
   (when (/= (point-max) (window-start))
     (set-window-vscroll nil (+ vscroll pos) t))
   0)
 
 (defun good-scroll--go-to-up-full (pos rem)
-  "Scroll the screen up by a full line and return the next target scroll
-  position. This function assumes POS > REM, where REM is the remaining amount
-  of pixels from the top of the screen to the end of the top line."
+  "Scroll the screen up by a full line.
+Return the next target scroll position. Assume POS > REM, where REM is the
+remaining amount of pixels from the top of the screen to the end of the top
+line."
   (set-window-vscroll nil 0 t)
   ;; Move point out of the way
   (when (<= (line-number-at-pos (point))
@@ -170,7 +180,9 @@ by POS pixels. This function returns zero."
     (- pos rem)))
 
 (defun good-scroll--go-to-down (pos vscroll)
-  "One step of scrolling down in `good-scroll--go-to'"
+  "Partially jump the window down by POS pixel lines.
+Return the remaining number of pixel lines to scroll. The parameter VSCROLL is
+the selected window's vscroll."
   (if (<= (- pos) vscroll)
       ;; Done scrolling except for a fraction of a line.
       ;; Scroll a fraction of a line and terminate.
@@ -179,14 +191,14 @@ by POS pixels. This function returns zero."
     (good-scroll--go-to-down-full pos vscroll)))
 
 (defun good-scroll--go-to-down-partial (pos vscroll)
-  "Assuming -POS <= VSCROLL, change the current window's vscroll by POS pixels.
-This function returns zero."
+  "Change the current window's vscroll by POS pixels.
+Return zero. Assume -POS <= VSCROLL."
   (set-window-vscroll nil (+ vscroll pos) t)
   0)
 
 (defun good-scroll--go-to-down-full (pos vscroll)
-  "Scroll the screen down by a full line and return the next target scroll
-position. This function assumes POS > VSCROLL."
+  "Scroll the screen down by a full line.
+Return the next target scroll position. Assume POS > VSCROLL."
   (set-window-vscroll nil 0 t)
   ;; Move point out of the way
   (when (<= (- (line-number-at-pos (window-end))
