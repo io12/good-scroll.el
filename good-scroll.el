@@ -37,12 +37,26 @@
 (defvar good-scroll-step 40)
 (defvar good-scroll-point-jump 3)
 
-(defvar good-scroll--window nil)
-(defvar good-scroll--timer)
-(defvar good-scroll--destination)
-(defvar good-scroll--traveled)
-(defvar good-scroll--start-time)
-(defvar good-scroll--direction 0)
+(defvar good-scroll--window nil
+  "The window scrolled most recently.")
+
+(defvar good-scroll--timer nil
+  "Timer for render updates.")
+
+(defvar good-scroll--destination nil
+  "Destination of the current scroll.
+The unit is pixel lines relative to the top of the window.
+For example, -12 means scrolling down 12 pixels.")
+
+(defvar good-scroll--traveled nil
+  "Number of pixel lines traveled so far in the current scroll.")
+
+(defvar good-scroll--start-time nil
+  "Start time of the most recent scroll.")
+
+(defvar good-scroll--direction 0
+  "Direction of the most recent scroll.
+This should be an integer. Positive means up and negative means down.")
 
 ;;;###autoload
 (define-minor-mode good-scroll-mode
