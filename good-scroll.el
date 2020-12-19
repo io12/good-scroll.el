@@ -32,10 +32,30 @@
 
 ;;; Code:
 
-(defvar good-scroll-render-rate (/ 1.0 30.0))
-(defvar good-scroll-duration 0.15)
-(defvar good-scroll-step 40)
-(defvar good-scroll-point-jump 3)
+(defgroup good-scroll nil
+  "Good scrolling"
+  :group 'scrolling)
+
+(defcustom good-scroll-render-rate (/ 1.0 30.0)
+  "Number of seconds between renders.
+This corresponds to the refresh rate of the scrolling animation."
+  :group #'good-scroll
+  :type 'float)
+
+(defcustom good-scroll-duration 0.15
+  "Duration of a scroll in seconds."
+  :group #'good-scroll
+  :type 'float)
+
+(defcustom good-scroll-step 40
+  "Number of pixel lines to scroll during a scroll step."
+  :group #'good-scroll
+  :type 'integer)
+
+(defcustom good-scroll-point-jump 3
+  "Number of text lines to move point when scrolling it off the window."
+  :group #'good-scroll
+  :type 'float)
 
 (defvar good-scroll--window nil
   "The window scrolled most recently.")
