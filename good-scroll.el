@@ -1,4 +1,36 @@
-;;; good-scroll.el --- Good scrolling                -*- lexical-binding: t; -*-
+;;; good-scroll.el --- Good scrolling -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2020 Benjamin Levy - MIT/X11 License
+;; Author: Benjamin Levy <blevy@protonmail.com>
+;; Version: 0.2.0
+;; Description: Attempt at good pixel-based smooth scrolling in Emacs
+;; Homepage: https://github.com/io12/good-scroll.el
+;; Package-Requires: ((emacs "24.4"))
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+;;
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+;;
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
+
+;;; Commentary:
+
+;; This package implements smooth scrolling by pixel lines. It attempts to
+;; improve upon `pixel-scroll-mode' by adding variable speed.
+
+;;; Code:
 
 (defvar good-scroll-render-rate (/ 1.0 30.0))
 (defvar good-scroll-duration 0.15)
@@ -31,17 +63,24 @@
         (cancel-timer good-scroll--timer)))))
 
 (defun good-scroll-up (&optional delta)
+  "Scroll up DELTA steps when `good-scroll-mode' is enabled.
+The default DELTA value is 1."
   (interactive)
   (good-scroll--update (or delta 1)))
 
 (defun good-scroll-down (&optional delta)
+  "Scroll down DELTA steps when `good-scroll-mode' is enabled.
+The default DELTA value is 1."
   (interactive)
   (good-scroll--update (- (or delta 1))))
 
 (defun good-scroll--update (delta)
+  "Begin a scroll up by DELTA steps. A negative DELTA means to scroll down.
+This is a helper function for `good-scroll-up' and `good-scroll-down'."
   (unless (input-pending-p)
     (setq good-scroll--destination
           (+ (* delta good-scroll-step)
+             ;; Reset destination if scroll changed direction
              (if (> (* delta good-scroll--direction) 0)
                  good-scroll--destination
                0))
@@ -51,6 +90,9 @@
           good-scroll--window (selected-window))))
 
 (defun good-scroll--render ()
+  "Update the window's vscroll and position in the buffer based on the scroll
+progress. This is called by the timer `good-scroll--timer' every
+`good-scroll-render-rate' seconds."
   (when (eq (selected-window) good-scroll--window)
     (let* (
            (elapsed-time (- (float-time) good-scroll--start-time))
@@ -65,12 +107,18 @@
         (good-scroll--go-to position-next)))))
 
 (defun good-scroll--go-to (pos)
+  "Update the window's vscroll and position in the buffer to instantly scroll to
+POS, where POS is the index from the top of the window in pixel lines. POS can
+be negative."
   (while (/= pos 0)
     (let* (
+           ;; Number of pixels scrolled past the top of the first line.
            (vscroll (window-vscroll nil t))
+           ;; Pixel height of the first line
            (line-height (save-excursion
                           (goto-char (window-start))
                           (line-pixel-height)))
+           ;; Remaining number of pixels in the first line
            (rem (- line-height vscroll)))
       (setq pos
             (if (> pos 0)
@@ -78,6 +126,7 @@
               (good-scroll--go-to-down pos vscroll))))))
 
 (defun good-scroll--go-to-up (pos vscroll line-height rem)
+  "One step of scrolling up in `good-scroll--go-to'"
   (if (< (+ vscroll pos) line-height)
       ;; Done scrolling except for a fraction of a line.
       ;; Scroll a fraction of a line and terminate.
@@ -86,11 +135,18 @@
     (good-scroll--go-to-up-full pos rem)))
 
 (defun good-scroll--go-to-up-partial (pos vscroll)
+  "Assuming VSCROLL + POS is less than the pixel height of the current line and
+the current window's vscroll is VSCROLL, increase the current window's vscroll
+by POS pixels. This function returns zero."
+  ;; Don't scroll if the last line is at the top of the window
   (when (/= (point-max) (window-start))
     (set-window-vscroll nil (+ vscroll pos) t))
   0)
 
 (defun good-scroll--go-to-up-full (pos rem)
+  "Scroll the screen up by a full line and return the next target scroll
+  position. This function assumes POS > REM, where REM is the remaining amount
+  of pixels from the top of the screen to the end of the top line."
   (set-window-vscroll nil 0 t)
   ;; Move point out of the way
   (when (<= (line-number-at-pos (point))
@@ -114,6 +170,7 @@
     (- pos rem)))
 
 (defun good-scroll--go-to-down (pos vscroll)
+  "One step of scrolling down in `good-scroll--go-to'"
   (if (<= (- pos) vscroll)
       ;; Done scrolling except for a fraction of a line.
       ;; Scroll a fraction of a line and terminate.
@@ -122,10 +179,14 @@
     (good-scroll--go-to-down-full pos vscroll)))
 
 (defun good-scroll--go-to-down-partial (pos vscroll)
+  "Assuming -POS <= VSCROLL, change the current window's vscroll by POS pixels.
+This function returns zero."
   (set-window-vscroll nil (+ vscroll pos) t)
   0)
 
 (defun good-scroll--go-to-down-full (pos vscroll)
+  "Scroll the screen down by a full line and return the next target scroll
+position. This function assumes POS > VSCROLL."
   (set-window-vscroll nil 0 t)
   ;; Move point out of the way
   (when (<= (- (line-number-at-pos (window-end))
@@ -150,3 +211,7 @@
        (save-excursion
          (goto-char (window-start))
          (line-pixel-height)))))
+
+(provide 'good-scroll)
+
+;;; good-scroll.el ends here
