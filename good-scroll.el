@@ -182,7 +182,8 @@ line in the selected window."
 Return zero. Assume VSCROLL + POS is less than the pixel height of the current
 line and the current window's vscroll is VSCROLL."
   ;; Don't scroll if the last line is at the top of the window
-  (when (/= (point-max) (window-start))
+  (when (/= (line-number-at-pos (point-max))
+            (line-number-at-pos (window-start)))
     (set-window-vscroll nil (+ vscroll pos) t))
   0)
 
@@ -198,7 +199,8 @@ line."
                good-scroll-point-jump))
     (forward-line good-scroll-point-jump))
   ;; Are we at the end of the buffer?
-  (if (= (point-max) (window-start))
+  (if (= (line-number-at-pos (point-max))
+         (line-number-at-pos (window-start)))
       ;; We are!
       ;; Print a message and terminate.
       (progn
