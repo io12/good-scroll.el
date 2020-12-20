@@ -62,7 +62,7 @@ Support for other scrolling algorithms is a
 ### How does this compare to other scrolling packages?
 
 Other modifications, like
-[`smooth-scrolling`](https://github.com/aspiers/smooth-scrolling)
+[`smooth-scrolling`](https://github.com/aspiers/smooth-scrolling),
 [`smooth-scroll`](https://github.com/k-talo/smooth-scroll.el),
 [`sublimity-scroll`](https://github.com/zk-phi/sublimity),
 and [`inertial-scroll`](https://github.com/kiwanami/emacs-inertial-scroll)
