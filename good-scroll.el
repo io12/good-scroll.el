@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2020 Benjamin Levy - MIT/X11 License
 ;; Author: Benjamin Levy <blevy@protonmail.com>
-;; Version: 0.2.0
+;; Version: 0.3.0
 ;; Description: Attempt at good pixel-based smooth scrolling in Emacs
 ;; Homepage: https://github.com/io12/good-scroll.el
 ;; Package-Requires: ((emacs "24.4"))
