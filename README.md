@@ -51,10 +51,13 @@ but not enough for video playback or frame-perfect smooth scrolling.
 
 ### Why doesn't this feel right compared to smooth scrolling in Firefox?
 
-By default, Firefox uses an algorithm based on a Bézier curve for scrolling,
+By default, Firefox uses an algorithm based on a
+[Bézier curve](https://en.wikipedia.org/wiki/B%C3%A9zier_curve)
+for scrolling,
 so that the deceleration feels natural.
-Currently, `good-scroll` uses a simpler scrolling algorithm
-that linearly interpolates the window position,
+Currently, `good-scroll` uses a simpler scrolling algorithm that
+[linearly interpolates](https://en.wikipedia.org/wiki/Linear_interpolation)
+the window position,
 which feels less natural.
 Support for other scrolling algorithms is a
 [planned feature](https://github.com/io12/good-scroll.el/issues/2).
