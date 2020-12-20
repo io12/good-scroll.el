@@ -18,6 +18,10 @@ For example, you can add the following snippet to your config.
 (good-scroll-mode 1)
 #+end_src
 ** FAQ
+*** Is this on MELPA?
+No.
+*** Can you add this to MELPA?
+Yes, if enough people want it.
 *** How does this work?
 Instead of scroll events directly scrolling the screen,
 they update a destination variable.
@@ -25,3 +29,27 @@ A timer that runs every ~good-scroll-render-rate~ seconds
 calculates the expected position and actually scrolls the window to it.
 To make the window scrolled partially through a line,
 ~good-scroll~ updates the window's /vscroll/ (vertical scroll) position.
+*** Why is performance sometimes bad?
+Scrolling sometimes pauses or stutters.
+It's unclear /exactly/ why,
+but one factor is that Emacs lacks animation support.
+Emacs has timers for updating the screen contents,
+which is enough for playing simple animated GIF files,
+but not enough for video playback or frame-perfect smooth scrolling.
+*** Why doesn't this feel right compared to smooth scrolling in Firefox?
+By default, Firefox uses an algorithm based on a Bézier curve for scrolling,
+so that the deceleration feels natural.
+Currently, ~good-scroll~ uses a simpler scrolling algorithm
+that linearly interpolates the window position,
+which feels less natural.
+Support for other scrolling algorithms is a [[https://github.com/io12/good-scroll.el/issues/2][planned feature]].
+*** How does this compare to other scrolling packages?
+Other modifications, like
+~smooth-scroll-mode~,
+~sublimity-scroll~,
+~dotspacemacs-smooth-scrolling~,
+and ~inertial-scroll~
+also aim to improve scrolling in Emacs,
+but none of them involve scrolling by pixel lines, only by text lines.
+The built-in ~pixel-scroll~ does implement pixel line scrolling,
+but, unlike ~good-scroll~, does not support dynamic scrolling velocity.
