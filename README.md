@@ -73,9 +73,9 @@ The built-in
 *does* implement pixel line scrolling,
 but, unlike `good-scroll`, does not support dynamic scrolling velocity.
 
-### Why is this file `README.md` and not `README.org`?
+### Why is this file written in Markdown and not Org?
 
 Apparently, GitHub does not yet support rendering
-`org` links with formatting inside of them.
+Org links with formatting inside of them.
 
 https://github.com/novoid/github-orgmode-tests/issues/3
