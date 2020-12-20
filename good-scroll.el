@@ -197,7 +197,7 @@ line."
   (when (<= (line-number-at-pos (point))
             (+ (line-number-at-pos (window-start))
                good-scroll-point-jump))
-    (forward-line good-scroll-point-jump))
+    (vertical-motion good-scroll-point-jump))
   ;; Are we at the end of the buffer?
   (if (= (line-number-at-pos (point-max))
          (line-number-at-pos (window-start)))
@@ -210,7 +210,7 @@ line."
     ;; Actually scroll one line
     (set-window-start nil (save-excursion
                             (goto-char (window-start))
-                            (forward-line)
+                            (vertical-motion 1)
                             (point))
                       t)
     (- pos rem)))
@@ -240,7 +240,7 @@ Return the next target scroll position. Assume POS > VSCROLL."
   (when (<= (- (line-number-at-pos (window-end))
                good-scroll-point-jump)
             (line-number-at-pos (point)))
-    (forward-line (- good-scroll-point-jump)))
+    (vertical-motion (- good-scroll-point-jump)))
   ;; Are we at the beginning of the buffer?
   (if (= (point-min) (window-start))
       ;; We are!
@@ -252,7 +252,7 @@ Return the next target scroll position. Assume POS > VSCROLL."
     ;; Actually scroll one line
     (set-window-start nil (save-excursion
                             (goto-char (window-start))
-                            (forward-line -1)
+                            (vertical-motion -1)
                             (point))
                       t)
     (+ pos vscroll
