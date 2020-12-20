@@ -1,3 +1,27 @@
 * ~good-scroll.el~
 
+Attempt at good pixel-based smooth scrolling in Emacs
+
+** About
+
+This package implements smooth scrolling by pixel lines.
+It attempts to improve upon ~pixel-scroll-mode~ by adding variable speed.
+
 [[./demo.gif]]
+
+** Setup
+Install and load the package.
+Then, enable ~good-scroll-mode~.
+For example, you can add the following snippet to your config.
+
+#+begin_src emacs-lisp
+(good-scroll-mode 1)
+#+end_src
+** FAQ
+*** How does this work?
+Instead of scroll events directly scrolling the screen,
+they update a destination variable.
+A timer that runs every ~good-scroll-render-rate~ seconds
+calculates the expected position and actually scrolls the window to it.
+To make the window scrolled partially through a line,
+~good-scroll~ updates the window's /vscroll/ (vertical scroll) position.
