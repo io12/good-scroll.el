@@ -18,9 +18,9 @@ For example, you can add the following snippet to your config.
 (good-scroll-mode 1)
 #+end_src
 ** FAQ
-*** Is this on MELPA?
+*** Is this on [[https://melpa.org/][MELPA]]?
 No.
-*** Can you add this to MELPA?
+*** Can you add this to [[https://melpa.org/][MELPA]]?
 Yes, if enough people want it.
 *** How does this work?
 Instead of scroll events directly scrolling the screen,
@@ -28,7 +28,9 @@ they update a destination variable.
 A timer that runs every ~good-scroll-render-rate~ seconds
 calculates the expected position and actually scrolls the window to it.
 To make the window scrolled partially through a line,
-~good-scroll~ updates the window's /vscroll/ (vertical scroll) position.
+~good-scroll~ updates the window's
+[[https://www.gnu.org/software/emacs/manual/html_node/elisp/Vertical-Scrolling.html][/vscroll/ (vertical scroll)]]
+position.
 *** Why is performance sometimes bad?
 Scrolling sometimes pauses or stutters.
 It's unclear /exactly/ why,
@@ -45,11 +47,13 @@ which feels less natural.
 Support for other scrolling algorithms is a [[https://github.com/io12/good-scroll.el/issues/2][planned feature]].
 *** How does this compare to other scrolling packages?
 Other modifications, like
-~smooth-scroll-mode~,
-~sublimity-scroll~,
-~dotspacemacs-smooth-scrolling~,
-and ~inertial-scroll~
+[[https://github.com/aspiers/smooth-scrolling][~smooth-scrolling~]]
+[[https://github.com/k-talo/smooth-scroll.el][~smooth-scroll~]],
+[[https://github.com/zk-phi/sublimity][~sublimity-scroll~]],
+and [[https://github.com/kiwanami/emacs-inertial-scroll][~inertial-scroll~]]
 also aim to improve scrolling in Emacs,
 but none of them involve scrolling by pixel lines, only by text lines.
-The built-in ~pixel-scroll~ does implement pixel line scrolling,
+The built-in
+[[https://git.savannah.gnu.org/cgit/emacs.git/tree/lisp/pixel-scroll.el][~pixel-scroll~]]
+/does/ implement pixel line scrolling,
 but, unlike ~good-scroll~, does not support dynamic scrolling velocity.
