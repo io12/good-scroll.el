@@ -39,22 +39,22 @@
 (defcustom good-scroll-render-rate (/ 1.0 30.0)
   "Number of seconds between renders.
 This corresponds to the refresh rate of the scrolling animation."
-  :group #'good-scroll
+  :group 'good-scroll
   :type 'float)
 
 (defcustom good-scroll-duration 0.15
   "Duration of a scroll in seconds."
-  :group #'good-scroll
+  :group 'good-scroll
   :type 'float)
 
 (defcustom good-scroll-step 40
   "Number of pixel lines to scroll during a scroll step."
-  :group #'good-scroll
+  :group 'good-scroll
   :type 'integer)
 
 (defcustom good-scroll-point-jump 3
   "Number of text lines to move point when scrolling it off the window."
-  :group #'good-scroll
+  :group 'good-scroll
   :type 'float)
 
 (defvar good-scroll--window nil
@@ -96,14 +96,14 @@ This should be an integer. Positive means up and negative means down.")
       (when (timerp good-scroll--timer)
         (cancel-timer good-scroll--timer)))))
 
-(defun good-scroll-up (&optional delta)
+(defun good-scroll-up (&optional _delta)
   "Scroll up one step.
 The value of DELTA is ignored and exists only for compatibility with
 `mwheel-scroll-up-function'."
   (interactive)
   (good-scroll--update 1))
 
-(defun good-scroll-down (&optional delta)
+(defun good-scroll-down (&optional _delta)
   "Scroll down one step.
 The value of DELTA is ignored and exists only for compatibility with
 `mwheel-scroll-down-function'."
