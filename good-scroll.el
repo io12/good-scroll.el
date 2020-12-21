@@ -97,31 +97,33 @@ This should be an integer. Positive means up and negative means down.")
         (cancel-timer good-scroll--timer)))))
 
 (defun good-scroll-up (&optional delta)
-  "Scroll up DELTA steps.
-The default DELTA value is 1."
+  "Scroll up one step.
+The value of DELTA is ignored and exists only for compatibility with
+`mwheel-scroll-up-function'."
   (interactive)
-  (good-scroll--update (or delta 1)))
+  (good-scroll--update 1))
 
 (defun good-scroll-down (&optional delta)
-  "Scroll down DELTA steps.
-The default DELTA value is 1."
+  "Scroll down one step.
+The value of DELTA is ignored and exists only for compatibility with
+`mwheel-scroll-down-function'."
   (interactive)
-  (good-scroll--update (- (or delta 1))))
+  (good-scroll--update -1))
 
-(defun good-scroll--update (delta)
-  "Begin a scroll up by DELTA steps.
-A negative DELTA means to scroll down. This is a helper function for
+(defun good-scroll--update (direction)
+  "Begin a scroll in DIRECTION.
+A negative DIRECTION means to scroll down. This is a helper function for
 `good-scroll-up' and `good-scroll-down'."
   (unless (input-pending-p)
     (setq good-scroll--destination
-          (+ (* delta good-scroll-step)
+          (+ (* direction good-scroll-step)
              ;; Reset destination if scroll changed direction
-             (if (> (* delta good-scroll--direction) 0)
+             (if (> (* direction good-scroll--direction) 0)
                  good-scroll--destination
                0))
           good-scroll--start-time (float-time)
           good-scroll--traveled 0
-          good-scroll--direction delta
+          good-scroll--direction direction
           good-scroll--window (selected-window))))
 
 (defun good-scroll--render ()
