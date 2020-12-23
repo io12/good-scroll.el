@@ -39,9 +39,13 @@ position.
 ### Why is performance sometimes bad?
 
 Scrolling sometimes pauses or stutters.
-It's unclear *exactly* why,
-but one factor is that Emacs lacks animation support.
-Emacs has timers for updating the screen contents,
+Running the
+[profiler](https://www.gnu.org/software/emacs/manual/html_node/elisp/Profiling.html), 
+most of the runtime is spent inside the C function `redisplay_internal()`
+and the garbage collector
+(garbage collecting memory used by `redisplay_internal()`).
+One factor is that Emacs lacks animation support.
+It has timers for updating the screen contents,
 which is enough for playing simple animated GIF files,
 but not enough for video playback or frame-perfect smooth scrolling.
 
