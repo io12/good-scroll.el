@@ -23,11 +23,7 @@ For example, you can add the following snippet to your config.
 
 ### Is this on [MELPA](https://melpa.org/)?
 
-No.
-
-### Can you add this to [MELPA](https://melpa.org/)?
-
-Yes, if enough people want it.
+[Not yet.](https://github.com/melpa/melpa/pull/7299)
 
 ### How does this work?
 
