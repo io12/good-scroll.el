@@ -1,3 +1,5 @@
+[![MELPA](https://melpa.org/packages/good-scroll-badge.svg)](https://melpa.org/#/good-scroll)
+
 # `good-scroll.el`
 
 Attempt at good pixel-based smooth scrolling in Emacs
@@ -20,10 +22,6 @@ For example, you can add the following snippet to your config.
 ```
 
 ## FAQ
-
-### Is this on [MELPA](https://melpa.org/)?
-
-[Not yet.](https://github.com/melpa/melpa/pull/7299)
 
 ### How does this work?
 
