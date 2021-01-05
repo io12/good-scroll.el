@@ -1,4 +1,4 @@
-;;; good-scroll.el --- Good scrolling -*- lexical-binding: t; -*-
+;;; good-scroll.el --- Good pixel line scrolling -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 Benjamin Levy - MIT/X11 License
 ;; Author: Benjamin Levy <blevy@protonmail.com>
@@ -33,7 +33,7 @@
 ;;; Code:
 
 (defgroup good-scroll nil
-  "Good scrolling"
+  "Good pixel line scrolling"
   :group 'scrolling)
 
 (defcustom good-scroll-render-rate (/ 1.0 30.0)
@@ -80,7 +80,7 @@ This should be an integer. Positive means up and negative means down.")
 
 ;;;###autoload
 (define-minor-mode good-scroll-mode
-  "Good scrolling"
+  "Good pixel line scrolling"
   :init-value nil
   :group 'scrolling
   :global t
