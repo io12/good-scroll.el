@@ -32,13 +32,19 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
+(require 'good-scroll-bezier)
+(require 'good-scroll-linear)
+
 (defgroup good-scroll nil
   "Good pixel line scrolling"
   :group 'scrolling)
 
 (defcustom good-scroll-render-rate (/ 1.0 30.0)
   "Number of seconds between renders.
-This corresponds to the refresh rate of the scrolling animation."
+This corresponds to the refresh rate of the scrolling animation.
+For changes of this option to take effect, `good-scroll-mode' must be restarted."
   :group 'good-scroll
   :type 'float)
 
@@ -47,7 +53,7 @@ This corresponds to the refresh rate of the scrolling animation."
   :group 'good-scroll
   :type 'float)
 
-(defcustom good-scroll-step 40
+(defcustom good-scroll-step 80
   "Number of pixel lines to scroll during a scroll step."
   :group 'good-scroll
   :type 'integer)
@@ -57,21 +63,33 @@ This corresponds to the refresh rate of the scrolling animation."
   :group 'good-scroll
   :type 'float)
 
+(defcustom good-scroll-algorithm #'good-scroll-bezier
+  "The scrolling animation algorithm to use.
+If implementing your own algorithm, it should be a function with one argument,
+a float from 0.0 to 1.0 representing the progress of the scroll.
+The function should return a target position in pixel-lines relative to the top
+of the window.
+See the built-in algorithms for inspiration."
+  :group 'good-scroll
+  :type '(radio (function-item good-scroll-bezier)
+                (function-item good-scroll-linear)
+                function))
+
 (defvar good-scroll--window nil
   "The window scrolled most recently.")
 
 (defvar good-scroll--timer nil
   "Timer for render updates.")
 
-(defvar good-scroll--destination nil
+(defvar good-scroll-destination nil
   "Destination of the current scroll.
 The unit is pixel lines relative to the top of the window.
 For example, -12 means scrolling down 12 pixels.")
 
-(defvar good-scroll--traveled nil
+(defvar good-scroll-traveled nil
   "Number of pixel lines traveled so far in the current scroll.")
 
-(defvar good-scroll--start-time nil
+(defvar good-scroll-start-time nil
   "Start time of the most recent scroll.")
 
 (defvar good-scroll--direction 0
@@ -115,14 +133,14 @@ The value of DELTA is ignored and exists only for compatibility with
 A negative DIRECTION means to scroll down. This is a helper function for
 `good-scroll-up' and `good-scroll-down'."
   (unless (input-pending-p)
-    (setq good-scroll--destination
+    (setq good-scroll-destination
           (+ (* direction good-scroll-step)
              ;; Reset destination if scroll changed direction
              (if (> (* direction good-scroll--direction) 0)
-                 good-scroll--destination
+                 good-scroll-destination
                0))
-          good-scroll--start-time (float-time)
-          good-scroll--traveled 0
+          good-scroll-start-time (float-time)
+          good-scroll-traveled 0
           good-scroll--direction direction
           good-scroll--window (selected-window))))
 
@@ -133,16 +151,16 @@ progress. This is called by the timer `good-scroll--timer' every
 `good-scroll-render-rate' seconds."
   (when (eq (selected-window) good-scroll--window)
     (let* (
-           (elapsed-time (- (float-time) good-scroll--start-time))
-           (fraction-done (/ elapsed-time good-scroll-duration))
-           (position-next (round (- (* fraction-done
-                                       (+ good-scroll--traveled
-                                          good-scroll--destination))
-                                    good-scroll--traveled))))
+           (elapsed-time (- (float-time) good-scroll-start-time))
+           (fraction-done (/ elapsed-time good-scroll-duration)))
       (unless (>= fraction-done 1.0)
-        (setq good-scroll--traveled (+ good-scroll--traveled position-next)
-              good-scroll--destination (- good-scroll--destination position-next))
-        (good-scroll--go-to position-next)))))
+        (let ((position-next (funcall good-scroll-algorithm fraction-done)))
+          (cl-assert (<= (abs position-next)
+                         (abs good-scroll-destination)))
+          (good-scroll--go-to position-next)
+          (setq good-scroll-traveled (+ good-scroll-traveled position-next)
+                good-scroll-destination (- good-scroll-destination
+                                            position-next)))))))
 
 (defun good-scroll--go-to (pos)
   "Jump the window by POS pixel lines.
