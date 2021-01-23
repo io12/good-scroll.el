@@ -41,7 +41,7 @@
   "Good pixel line scrolling"
   :group 'scrolling)
 
-(defcustom good-scroll-render-rate (/ 1.0 30.0)
+(defcustom good-scroll-render-rate 0.02
   "Number of seconds between renders.
 This corresponds to the refresh rate of the scrolling animation.
 For changes of this option to take effect, `good-scroll-mode' must be restarted."
