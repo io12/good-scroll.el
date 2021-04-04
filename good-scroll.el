@@ -75,6 +75,16 @@ See the built-in algorithms for inspiration."
                 (function-item good-scroll-linear)
                 function))
 
+(defcustom good-scroll-avoid-vscroll-reset t
+  "If non-nil, avoid resetting vscroll when `line-move' is called.
+Normally, when the user presses a key to move the point,
+`line-move' is called, and this resets the vscroll.
+If this variable is non-nil, `good-scroll' overrides this behavior.
+For changing this variable to take effect,
+`good-scroll-mode' must be restarted."
+  :group 'good-scroll
+  :type 'boolean)
+
 (defvar good-scroll--window nil
   "The window scrolled most recently.")
 
@@ -104,15 +114,38 @@ This should be an integer. Positive means up and negative means down.")
   :global t
 
   (if good-scroll-mode
-      (setq mwheel-scroll-up-function #'good-scroll-up
-            mwheel-scroll-down-function #'good-scroll-down
-            good-scroll--timer
-            (run-at-time 0 good-scroll-render-rate #'good-scroll--render))
+      (progn
+        (setq mwheel-scroll-up-function #'good-scroll-up
+              mwheel-scroll-down-function #'good-scroll-down
+              good-scroll--timer
+              (run-at-time 0 good-scroll-render-rate #'good-scroll--render))
+        (when good-scroll-avoid-vscroll-reset
+          (advice-add 'line-move :around #'good-scroll--advice-line-move)))
     (progn
       (setq mwheel-scroll-up-function #'scroll-up
             mwheel-scroll-down-function #'scroll-down)
       (when (timerp good-scroll--timer)
-        (cancel-timer good-scroll--timer)))))
+        (cancel-timer good-scroll--timer))
+      (advice-remove 'line-move #'good-scroll--advice-line-move))))
+
+(defun good-scroll--point-at-top-p ()
+  "Return non-nil if the point is close to the top of the selected window."
+  (<= (line-number-at-pos (point) t)
+      (+ (line-number-at-pos (window-start) t)
+         good-scroll-point-jump)))
+
+(defun good-scroll--advice-line-move (line-move &rest args)
+  "Call LINE-MOVE with ARGS, but avoid resetting the vscroll.
+This function is used as advice to the `line-move' function."
+  (if (good-scroll--point-at-top-p)
+      ;; If point is at the top,
+      ;; default to the old behavior of resetting the vscroll.
+      ;; It makes sense to show the full top line when the point moves up.
+      (apply line-move args)
+    ;; Use dynamic scoping to bind function
+    ;; https://endlessparentheses.com/understanding-letf-and-how-it-replaces-flet.html
+    (cl-letf (((symbol-function #'set-window-vscroll) #'ignore))
+      (apply line-move args))))
 
 (defun good-scroll-up (&optional _delta)
   "Scroll up one step.
@@ -214,9 +247,7 @@ remaining amount of pixels from the top of the screen to the end of the top
 line."
   (set-window-vscroll nil 0 t)
   ;; Move point out of the way
-  (when (<= (line-number-at-pos (point))
-            (+ (line-number-at-pos (window-start))
-               good-scroll-point-jump))
+  (when (good-scroll--point-at-top-p)
     (vertical-motion good-scroll-point-jump))
   ;; Are we at the end of the buffer?
   (if (= (line-number-at-pos (point-max))
