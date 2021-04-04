@@ -1,6 +1,6 @@
 ;;; good-scroll.el --- Good pixel line scrolling -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 Benjamin Levy - MIT/X11 License
+;; Copyright (C) 2021 Benjamin Levy - MIT/X11 License
 ;; Author: Benjamin Levy <blevy@protonmail.com>
 ;; Version: 0.3.0
 ;; Description: Attempt at good pixel-based smooth scrolling in Emacs

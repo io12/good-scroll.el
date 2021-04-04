@@ -1,6 +1,6 @@
 ;;; good-scroll-bezier.el --- Bézier scrolling algorithm -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 Benjamin Levy - MIT/X11 License
+;; Copyright (C) 2021 Benjamin Levy - MIT/X11 License
 ;; Author: Benjamin Levy <blevy@protonmail.com>
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
