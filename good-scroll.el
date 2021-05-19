@@ -161,7 +161,7 @@ and FORMS-STRING contains the evaluated values of FORMS."
 This is used instead of `assert' when FORM is expensive to compute
 and shouldn't be run normally."
   `(when good-scroll--debug
-     (assert ,form)))
+     (cl-assert ,form)))
 
 (defun good-scroll--point-at-top-p ()
   "Return non-nil if the point is close to the top of the selected window."
@@ -234,8 +234,8 @@ progress. This is called by the timer `good-scroll--timer' every
              (fraction-done (/ elapsed-time good-scroll-duration)))
         (unless (>= fraction-done 1.0)
           (let ((position-next (funcall good-scroll-algorithm fraction-done)))
-            (assert (<= (abs position-next)
-                        (abs good-scroll-destination)))
+            (cl-assert (<= (abs position-next)
+                           (abs good-scroll-destination)))
             (when (good-scroll--cached-point-top-dirty-p)
               (setq good-scroll--cached-point-top nil))
             (setq position-next (good-scroll--go-to position-next))
