@@ -394,11 +394,11 @@ Return the number of pixels (possibly negative) scrolled successfully."
       (setq good-scroll--cached-point-top
             (- good-scroll--cached-point-top traveled))
       (good-scroll--log "R3"
-                          traveled
-                          target
-                          remaining
-                          good-scroll--cached-point-top
-                          (good-scroll--point-top))
+                        traveled
+                        target
+                        remaining
+                        good-scroll--cached-point-top
+                        (good-scroll--point-top))
       (good-scroll--slow-assert (= good-scroll--cached-point-top
                                    (good-scroll--point-top)))
       traveled)))
