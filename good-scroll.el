@@ -464,11 +464,6 @@ line."
     ;; We aren't.
     ;; Actually scroll one line
     (set-window-vscroll nil 0 t)
-    (good-scroll--log "good-scroll--go-to-up-full mid"
-                      pos
-                      rem
-                      good-scroll--cached-point-top
-                      (good-scroll--point-top))
     (set-window-start nil (save-excursion
                             (goto-char (window-start))
                             (vertical-motion 1)
