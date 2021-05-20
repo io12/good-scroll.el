@@ -343,15 +343,18 @@ so it should be called while it returns t."
      ;; The exception is when the cursor height
      ;; is greater than the window height.
      ((and (> p-next-bottom w-usable-height) (> w-usable-height p-height))
+      (good-scroll--log "move point out of way case 1")
       (good-scroll--move-point-up))
      ;; The scroll is going to make the bottom of the cursor go above the window,
      ;; which would make the cursor go completely offscreen.
      ;; Move the cursor down to avoid this.
      ((<= p-next-bottom 0)
+      (good-scroll--log "move point out of way case 2")
       (good-scroll--move-point-down))
      ;; The scroll is going to make the cursor overlap the top of the window.
      ;; Move the cursor down to avoid this if there's room.
      ((and (< p-next-top 0 p-next-bottom) (<= nl-next-bottom w-usable-height))
+      (good-scroll--log "move point out of way case 3")
       (good-scroll--move-point-down)))
     ;; Return if the cursor position changed
     (/= p-start (point))))
