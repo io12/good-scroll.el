@@ -151,8 +151,8 @@ and FORMS-STRING contains the evaluated values of FORMS."
   (let ((forms (cons 'list (mapcar (lambda (form) `(list ',form ,form)) forms))))
     `(when good-scroll--debug
        (let* ((stringify-form (lambda (form) (format "%s=%s"
-                                                (nth 0 form)
-                                                (nth 1 form))))
+                                                     (nth 0 form)
+                                                     (nth 1 form))))
               (forms-string (mapconcat stringify-form ,forms ", ")))
          (message "good-scroll: %s: %s" ,string forms-string)))))
 
