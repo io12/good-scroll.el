@@ -165,8 +165,11 @@ and shouldn't be run normally."
 
 (defun good-scroll--point-at-top-p ()
   "Return non-nil if the point is close to the top of the selected window."
-  (<= (line-number-at-pos (point) t)
-      (1+ (line-number-at-pos (window-start) t))))
+  (save-restriction
+    ;; Widen in case the window start is outside the visible part of the buffer
+    (widen)
+    (<= (line-number-at-pos (point) t)
+        (1+ (line-number-at-pos (window-start) t)))))
 
 (defun good-scroll--advice-line-move (line-move &rest args)
   "Call LINE-MOVE with ARGS, but avoid resetting the vscroll.
