@@ -358,7 +358,18 @@ so it should be called while it returns t."
      ;; Move the cursor down to avoid this if there's room.
      ((and (< p-next-top 0 p-next-bottom) (<= nl-next-bottom w-usable-height))
       (good-scroll--log "move point out of way case 3")
-      (good-scroll--move-point-down)))
+      (good-scroll--move-point-down))
+     ;; The cursor is not going to overlap the top of the window
+     ;; and the cursor height is greater than the window height.
+     ;; Move the point up, because we want to maintain the property
+     ;; that when the cursor height exceeds the window height,
+     ;; there shouldn't be any space between the cursor
+     ;; and the top of the window.
+     ;; Breaking this property is inconsistent with case 1
+     ;; and can prevent scrolling down.
+     ((and (not (< p-next-top 0 p-next-bottom)) (> p-height w-usable-height))
+      (good-scroll--log "move point out of way case 4")
+      (good-scroll--move-point-up)))
     ;; Return if the cursor position changed
     (/= p-start (point))))
 
