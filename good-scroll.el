@@ -70,11 +70,21 @@ See the built-in algorithms for inspiration."
                 (function-item good-scroll-linear)
                 function))
 
-(defcustom good-scroll-avoid-vscroll-reset t
+(defcustom good-scroll-persist-vscroll-line-move t
   "If non-nil, avoid resetting vscroll when `line-move' is called.
 Normally, when the user presses a key to move the point,
 `line-move' is called, and this resets the vscroll.
 If this variable is non-nil, `good-scroll' overrides this behavior.
+For changing this variable to take effect,
+`good-scroll-mode' must be restarted."
+  :group 'good-scroll
+  :type 'boolean)
+
+(defcustom good-scroll-persist-vscroll-window-scroll t
+  "If non-nil, restore a saved vscroll when `window-scroll-functions' is called.
+There are aren't many cases where this makes a difference,
+but one example is buffers with other buffers embedded inside them,
+such as with the polymode package.
 For changing this variable to take effect,
 `good-scroll-mode' must be restarted."
   :group 'good-scroll
@@ -132,15 +142,18 @@ for performance reasons.")
               mwheel-scroll-down-function #'good-scroll-down
               good-scroll--timer
               (run-at-time 0 good-scroll-render-rate #'good-scroll--render))
-        (when good-scroll-avoid-vscroll-reset
-          (advice-add 'line-move :around #'good-scroll--advice-line-move)))
+        (when good-scroll-persist-vscroll-line-move
+          (advice-add 'line-move :around #'good-scroll--advice-line-move))
+        (when good-scroll-persist-vscroll-window-scroll
+          (add-hook 'window-scroll-functions #'good-scroll--restore-vscroll)))
     ;; Disable major mode
     (progn
       (setq mwheel-scroll-up-function #'scroll-up
             mwheel-scroll-down-function #'scroll-down)
       (when (timerp good-scroll--timer)
         (cancel-timer good-scroll--timer))
-      (advice-remove 'line-move #'good-scroll--advice-line-move))))
+      (advice-remove 'line-move #'good-scroll--advice-line-move)
+      (remove-hook 'window-scroll-functions #'good-scroll--restore-vscroll))))
 
 (defmacro good-scroll--log (string &rest forms)
   "When `good-scroll--debug' is non-nil, log a message.
@@ -155,6 +168,25 @@ and FORMS-STRING contains the evaluated values of FORMS."
                                                      (nth 1 form))))
               (forms-string (mapconcat stringify-form ,forms ", ")))
          (message "good-scroll: %s: %s" ,string forms-string)))))
+
+(defun good-scroll--window-and-window-start-same-p ()
+  "Return whether the window and window start are the same.
+If the selected window, and window start is the same as
+it was in in the last render, return non-nil.
+Otherwise, return nil."
+  (and good-scroll--window
+       good-scroll--prev-window-start
+       (eq good-scroll--window (selected-window))
+       (= good-scroll--prev-window-start (window-start))))
+
+(defun good-scroll--restore-vscroll (&rest _args)
+  "Restore the saved vscroll value.
+If nothing but the vscroll changed since the last render,
+restore the previous vscroll value.
+This function is used as a hook in `window-scroll-functions'."
+  (when (good-scroll--window-and-window-start-same-p)
+    (good-scroll--log "restore vscroll" good-scroll--prev-vscroll)
+    (set-window-vscroll nil good-scroll--prev-vscroll t)))
 
 (defmacro good-scroll--slow-assert (form)
   "When `good-scroll--debug' is non-nil, call `assert' on FORM.
@@ -219,12 +251,11 @@ A negative DIRECTION means to scroll down. This is a helper function for
 Otherwise, return nil.
 If the point moved or window scrolled since the last render,
 this leads to `good-scroll--cached-point-top' being invalidated."
-  (not (and good-scroll--prev-point
-            good-scroll--prev-window-start
-            good-scroll--prev-vscroll
+  (not (and good-scroll--prev-vscroll
+            good-scroll--prev-point
             (= good-scroll--prev-point (point))
-            (= good-scroll--prev-window-start (window-start))
-            (= good-scroll--prev-vscroll (window-vscroll nil t)))))
+            (= good-scroll--prev-vscroll (window-vscroll nil t))
+            (good-scroll--window-and-window-start-same-p))))
 
 (defun good-scroll--render ()
   "Render an in-progress scroll.
