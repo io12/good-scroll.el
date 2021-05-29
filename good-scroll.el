@@ -314,9 +314,13 @@ below the tab and header lines."
 (defun good-scroll--move-point-down ()
   "Move the cursor down and update `good-scroll--cached-point-top' accordingly."
   (let ((height (line-pixel-height)))
-    (when (= 1 (vertical-motion 1))
-      (setq good-scroll--cached-point-top
-            (+ good-scroll--cached-point-top height)))))
+    (if (= 1 (vertical-motion 1))
+        (setq good-scroll--cached-point-top
+              (+ good-scroll--cached-point-top height))
+      ;; If point is on the last line,
+      ;; `vertical-motion' moves it to the end of the line.
+      ;; This causes a jitter, so avoid it.
+      (beginning-of-line))))
 
 (defun good-scroll--move-point-out-of-way (delta)
   "Move the cursor to prepare for a scroll of DELTA pixel lines.
