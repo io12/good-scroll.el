@@ -277,18 +277,24 @@ progress. This is called by the timer `good-scroll--timer' every
       (let* ((elapsed-time (- (float-time) good-scroll-start-time))
              (fraction-done (/ elapsed-time good-scroll-duration)))
         (unless (>= fraction-done 1.0)
-          (let ((position-next (funcall good-scroll-algorithm fraction-done)))
-            (cl-assert (<= (abs position-next)
-                           (abs good-scroll-destination)))
+          (let ((position-next-try
+                 (funcall good-scroll-algorithm fraction-done))
+                (position-next-actual))
             (when (good-scroll--cached-point-top-dirty-p)
               (setq good-scroll--cached-point-top nil))
-            (setq position-next (good-scroll--go-to position-next))
-            (setq good-scroll-traveled (+ good-scroll-traveled position-next)
+            (setq position-next-actual (good-scroll--go-to position-next-try))
+            (setq good-scroll-traveled (+ good-scroll-traveled
+                                          position-next-actual)
                   good-scroll-destination (- good-scroll-destination
-                                             position-next)
+                                             position-next-actual)
                   good-scroll--prev-point (point)
                   good-scroll--prev-window-start (window-start)
-                  good-scroll--prev-vscroll (window-vscroll nil t))))))))
+                  good-scroll--prev-vscroll (window-vscroll nil t))
+            ;; If we didn't jump the position as much as we wanted,
+            ;; then we must be trying to scroll past the edge of the buffer.
+            ;; This interrupts the scroll, so reset the destination to zero.
+            (when (/= position-next-try position-next-actual)
+              (setq good-scroll-destination 0))))))))
 
 (defun good-scroll--first-y ()
   "Return the cursor's first possible pixel y coordinate.
