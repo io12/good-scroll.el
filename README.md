@@ -21,6 +21,16 @@ For example, you can add the following snippet to your config.
 (good-scroll-mode 1)
 ```
 
+### Key bindings
+
+If you want to bind the <kbd>Page Up</kbd> and <kbd>Page Down</kbd> keys,
+you can also add the following:
+
+```lisp
+(global-set-key [next] #'good-scroll-up-full-screen)
+(global-set-key [prior] #'good-scroll-down-full-screen)
+```
+
 ## FAQ
 
 ### How does this work?
