@@ -221,29 +221,39 @@ This function is used as advice to the `line-move' function."
 The value of DELTA is ignored and exists only for compatibility with
 `mwheel-scroll-up-function'."
   (interactive)
-  (good-scroll--update 1))
+  (good-scroll-move good-scroll-step))
 
 (defun good-scroll-down (&optional _delta)
   "Scroll down one step.
 The value of DELTA is ignored and exists only for compatibility with
 `mwheel-scroll-down-function'."
   (interactive)
-  (good-scroll--update -1))
+  (good-scroll-move (- good-scroll-step)))
 
-(defun good-scroll--update (direction)
-  "Begin a scroll in DIRECTION.
-A negative DIRECTION means to scroll down. This is a helper function for
+(defun good-scroll-up-full-screen ()
+  "Scroll up by a full screen."
+  (interactive)
+  (good-scroll-move (good-scroll--window-usable-height)))
+
+(defun good-scroll-down-full-screen ()
+  "Scroll down by a full screen."
+  (interactive)
+  (good-scroll-move (- (good-scroll--window-usable-height))))
+
+(defun good-scroll-move (step)
+  "Begin a scroll of STEP pixel lines.
+A negative STEP means to scroll down. This is a helper function for
 `good-scroll-up' and `good-scroll-down'."
   (unless (input-pending-p)
     (setq good-scroll-destination
-          (+ (* direction good-scroll-step)
+          (+ step
              ;; Reset destination if scroll changed direction
-             (if (> (* direction good-scroll--direction) 0)
+             (if (> (* step good-scroll--direction) 0)
                  good-scroll-destination
                0))
           good-scroll-start-time (float-time)
           good-scroll-traveled 0
-          good-scroll--direction direction
+          good-scroll--direction step
           good-scroll--window (selected-window))))
 
 (defun good-scroll--cached-point-top-dirty-p ()
@@ -322,6 +332,21 @@ below the tab and header lines."
       ;; This causes a jitter, so avoid it.
       (beginning-of-line))))
 
+(defun good-scroll--window-usable-height ()
+  "Return the usable height of the selected window.
+Return the pixel height of the area of the selected window
+that the cursor is allowed to be inside.
+This is from the bottom of the header line to the top of the mode line."
+  (let* ((w-edges (window-inside-pixel-edges))
+         ;; Number of pixels from top of frame to top of selected window
+         ;; The top of the window is considered the top of the tab line,
+         ;; if it exists.
+         (w-top (- (nth 1 w-edges) (window-header-line-height)))
+         ;; Number of pixels from top of frame to bottom of selected window
+         ;; The bottom of the window is considered the top of the mode line.
+         (w-bottom (+ (nth 3 w-edges) (window-tab-line-height))))
+    (- w-bottom w-top (good-scroll--first-y))))
+
 (defun good-scroll--move-point-out-of-way (delta)
   "Move the cursor to prepare for a scroll of DELTA pixel lines.
 Emacs doesn't allow the cursor to be outside the window,
@@ -330,19 +355,7 @@ Return t if the cursor moved, nil otherwise.
 This function only moves the point by one line at a time,
 so it should be called while it returns t."
   (let* ((p-start (point)) ; Cursor position
-         (w-edges (window-inside-pixel-edges))
-         ;; Number of pixels from top of frame to top of selected window
-         ;; The top of the window is considered the top of the tab line,
-         ;; if it exists.
-         (w-top (- (nth 1 w-edges) (window-header-line-height)))
-         ;; Number of pixels from top of frame to bottom of selected window
-         ;; The bottom of the window is considered the top of the mode line.
-         (w-bottom (+ (nth 3 w-edges) (window-tab-line-height)))
-         ;; Pixel height of area of the selected window
-         ;; that the cursor is allowed to be inside
-         ;; This is from the bottom of the header line
-         ;; to the top of the mode line.
-         (w-usable-height (- w-bottom w-top (good-scroll--first-y)))
+         (w-usable-height (good-scroll--window-usable-height))
          ;; Number of pixels from top of window to top of cursor
          ;; This can be negative if the top of the window overlaps the cursor.
          (p-top (setq good-scroll--cached-point-top
