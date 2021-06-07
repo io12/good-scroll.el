@@ -280,6 +280,8 @@ progress. This is called by the timer `good-scroll--timer' every
           (let ((position-next-try
                  (funcall good-scroll-algorithm fraction-done))
                 (position-next-actual))
+            (cl-assert (<= (abs position-next-try)
+                           (abs good-scroll-destination)))
             (when (good-scroll--cached-point-top-dirty-p)
               (setq good-scroll--cached-point-top nil))
             (setq position-next-actual (good-scroll--go-to position-next-try))
