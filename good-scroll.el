@@ -275,8 +275,8 @@ progress. This is called by the timer `good-scroll--timer' every
   (let ((inhibit-redisplay t)) ; TODO: Does this do anything?
     (when (eq (selected-window) good-scroll--window)
       (let* ((elapsed-time (- (float-time) good-scroll-start-time))
-             (fraction-done (/ elapsed-time good-scroll-duration)))
-        (unless (>= fraction-done 1.0)
+             (fraction-done (min 1.0 (/ elapsed-time good-scroll-duration))))
+        (unless (zerop good-scroll-destination)
           (let ((position-next-try
                  (funcall good-scroll-algorithm fraction-done))
                 (position-next-actual))
