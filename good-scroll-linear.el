@@ -3,6 +3,7 @@
 ;; Copyright (C) 2021 Benjamin Levy - MIT/X11 License
 ;; Author: Benjamin Levy <blevy@protonmail.com>
 ;; Homepage: https://github.com/io12/good-scroll.el
+;; Package-Requires: ((emacs "27.1"))
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
 ;; of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +40,21 @@ This works by linearly interpolating position."
                (+ good-scroll-traveled
                   good-scroll-destination))
             good-scroll-traveled)))
+
+(ert-deftest good-scroll-linear ()
+  (with-temp-buffer
+    (cl-flet ((test-case
+               (traveled destination zero half one)
+               (set (make-local-variable 'good-scroll-traveled) traveled)
+               (set (make-local-variable 'good-scroll-destination) destination)
+               (should (= (good-scroll-linear 0.0) zero))
+               (should (= (good-scroll-linear 0.5) half))
+               (should (= (good-scroll-linear 1.0) one))))
+      (test-case 0 10 0 5 10)
+      (test-case 0 -10 0 -5 -10)
+      (test-case 10 20 -10 5 20)
+      (test-case -10 20 10 15 20)
+      (test-case 10 -20 -10 -15 -20))))
 
 (provide 'good-scroll-linear)
 
