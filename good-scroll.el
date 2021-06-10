@@ -585,7 +585,8 @@ Return the next target scroll position. Assume POS > VSCROLL."
                     (good-scroll--point-top))
   (set-window-vscroll nil 0 t)
   ;; Are we at the beginning of the buffer?
-  (if (= (point-min) (window-start))
+  (if (= (line-number-at-pos (point-min))
+         (line-number-at-pos (window-start)))
       ;; We are!
       ;; Print a message and terminate.
       (progn
