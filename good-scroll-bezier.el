@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 2021 Benjamin Levy - MIT/X11 License
 ;; Author: Benjamin Levy <blevy@protonmail.com>
+;; Homepage: https://github.com/io12/good-scroll.el
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
 ;; of this software and associated documentation files (the "Software"), to deal
