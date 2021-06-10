@@ -44,7 +44,7 @@
 (defcustom good-scroll-render-rate 0.02
   "Number of seconds between renders.
 This corresponds to the refresh rate of the scrolling animation.
-For changes of this option to take effect, `good-scroll-mode' must be restarted."
+For changes of this option to take effect, good-scroll mode must be restarted."
   :group 'good-scroll
   :type 'float)
 
@@ -75,8 +75,7 @@ See the built-in algorithms for inspiration."
 Normally, when the user presses a key to move the point,
 `line-move' is called, and this resets the vscroll.
 If this variable is non-nil, `good-scroll' overrides this behavior.
-For changing this variable to take effect,
-`good-scroll-mode' must be restarted."
+For changing this variable to take effect, good-scroll mode must be restarted."
   :group 'good-scroll
   :type 'boolean)
 
@@ -85,8 +84,7 @@ For changing this variable to take effect,
 There are aren't many cases where this makes a difference,
 but one example is buffers with other buffers embedded inside them,
 such as with the polymode package.
-For changing this variable to take effect,
-`good-scroll-mode' must be restarted."
+For changing this variable to take effect, good-scroll mode must be restarted."
   :group 'good-scroll
   :type 'boolean)
 
