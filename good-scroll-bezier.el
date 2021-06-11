@@ -3,6 +3,7 @@
 ;; Copyright (C) 2021 Benjamin Levy - MIT/X11 License
 ;; Author: Benjamin Levy <blevy@protonmail.com>
 ;; Homepage: https://github.com/io12/good-scroll.el
+;; Package-Requires: ((emacs "27.1"))
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
 ;; of this software and associated documentation files (the "Software"), to deal
@@ -71,11 +72,13 @@ if they differ by less than `good-scroll-bezier--epsilon'."
   "Estimate the t value of a cubic Bézier curve.
 Given X (the output of the Bézier formula),
 return the corresponding input value TT between T-MIN and T-MAX.
-The Bézier curve is defined by the control points [0, X1, X2, 1]."
+The Bézier curve is defined by the control points [0, X1, X2, 1].
+The value of X must be in the interval [0,1]."
   ;; Use recursive binary search.
   ;; This works because the curve is always monotonically increasing.
   ;; Another approach is using Newton's method,
   ;; but that can be slow or get stuck when the slope is close to zero.
+  (cl-assert (<= 0.0 x 1.0))
   (let* (
          (t-min (or t-min 0.0))
          (t-max (or t-max 1.0))
