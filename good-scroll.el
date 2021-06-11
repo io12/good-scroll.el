@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (require 'good-scroll-bezier)
 (require 'good-scroll-linear)
 
