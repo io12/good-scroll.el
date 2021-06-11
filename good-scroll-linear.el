@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(require 'ert)
+
 (defun good-scroll-linear (fraction-done)
   "Linear scrolling algorithm.
 Return the next position in pixel lines when the scroll is FRACTION-DONE done.

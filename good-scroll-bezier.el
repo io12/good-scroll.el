@@ -35,6 +35,8 @@
 
 
 
+(require 'ert)
+
 ;;;; General Bézier curve calculations
 
 (defvar good-scroll-bezier--epsilon 0.0001
