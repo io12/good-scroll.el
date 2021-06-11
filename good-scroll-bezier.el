@@ -98,6 +98,24 @@ The value of X must be in the interval [0,1]."
       ;; Try lower half
       (good-scroll-bezier--t-given-x x x1 x2 t-min t-mid)))))
 
+(ert-deftest good-scroll-bezier--test-t-given-x ()
+  (with-temp-buffer
+    (cl-flet ((test-case
+               (x x1 x2)
+               (let* ((tt (good-scroll-bezier--t-given-x x x1 x2))
+                      (x- (good-scroll-bezier--calc tt x1 x2)))
+                 (should (good-scroll-bezier--approx-eq-p x x-)))))
+      (test-case 0.0 0.0 0.0)
+      (test-case 0.5 0.0 0.0)
+      (test-case 0.0 0.1 3.1)
+      (test-case 1.0 2.0 3.0)
+      (test-case 0.0 -0.1 3.1)
+      (test-case 0.0 0.1 -3.1)
+      (test-case 1.0 -2.0 -3.0)
+      (test-case 1.0 2.0 -3.0)
+      (test-case 0.5 2.0 3.0)
+      (test-case 1.0 -2.0 3.0))))
+
 
 
 ;;; Integration with `good-scroll'
