@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(require 'ert)
-
 (defun good-scroll-linear (fraction-done)
   "Linear scrolling algorithm.
 Return the next position in pixel lines when the scroll is FRACTION-DONE done.
@@ -42,21 +40,6 @@ This works by linearly interpolating position."
                (+ good-scroll-traveled
                   good-scroll-destination))
             good-scroll-traveled)))
-
-(ert-deftest good-scroll-linear ()
-  (with-temp-buffer
-    (cl-flet ((test-case
-               (traveled destination zero half one)
-               (set (make-local-variable 'good-scroll-traveled) traveled)
-               (set (make-local-variable 'good-scroll-destination) destination)
-               (should (= (good-scroll-linear 0.0) zero))
-               (should (= (good-scroll-linear 0.5) half))
-               (should (= (good-scroll-linear 1.0) one))))
-      (test-case 0 10 0 5 10)
-      (test-case 0 -10 0 -5 -10)
-      (test-case 10 20 -10 5 20)
-      (test-case -10 20 10 15 20)
-      (test-case 10 -20 -10 -15 -20))))
 
 (provide 'good-scroll-linear)
 
