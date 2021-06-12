@@ -33,6 +33,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 
 
 ;;;; General Bézier curve calculations
