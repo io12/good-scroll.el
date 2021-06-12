@@ -64,12 +64,13 @@ defined by the control points [0, P1, P2, 1]."
      (* 6 (- 1 tt) tt (- p2 p1))
      (* 3 (expt tt 2) (- 1 p2))))
 
-(defun good-scroll-bezier--approx-eq-p (a b)
+(defun good-scroll-bezier--approx-eq-p (a b &optional epsilon)
   "Return whether the floating point values A and B are approximately equal.
 The floats are considered approximately equal
-if they differ by less than `good-scroll-bezier--epsilon'."
+if they differ by less than EPSILON,
+or `good-scroll-bezier--epsilon' if EPSILON is nil."
   (< (abs (- a b))
-     good-scroll-bezier--epsilon))
+     (or epsilon good-scroll-bezier--epsilon)))
 
 (defun good-scroll-bezier--t-given-x (x x1 x2 &optional t-min t-max)
   "Estimate the t value of a cubic Bézier curve.
