@@ -120,7 +120,7 @@ The value of X must be in the interval [0,1]."
 
 
 
-;;; Integration with `good-scroll'
+;;;; Integration with `good-scroll'
 
 (defvar good-scroll-bezier--x1 nil
   "X coordinate of first control point.")
