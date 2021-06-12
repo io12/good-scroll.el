@@ -39,9 +39,10 @@
 
 ;;;; General Bézier curve calculations
 
-(defvar good-scroll-bezier--epsilon 0.0001
+(defconst good-scroll-bezier--epsilon 0.0001
   "Epsilon for checking if floats are approximately equal.
-The function `good-scroll-bezier--approx-eq-p' uses this.")
+The function `good-scroll-bezier--approx-eq-p' uses this.
+Decreasing this `good-scroll-bezier--t-given-x' more accurate, but slower.")
 
 (defun good-scroll-bezier--calc (tt p1 p2)
   "Compute the cubic Bézier polynomial at TT with control points [0, P1, P2, 1].
