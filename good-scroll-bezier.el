@@ -197,10 +197,6 @@ Assume the scroll's progress is FRACTION-DONE."
                     0.0)))
     ;; Actually update the control points
     (good-scroll-bezier--set-points velocity)))
-    ;; TODO: Use unit tests for this
-    ;; (let ((v (good-scroll-bezier--velocity-at 0.0)))
-    ;;   (unless (good-scroll-bezier--approx-eq-p velocity v)
-    ;;     (message (format "%s %s" velocity v))))))
 
 (defun good-scroll-bezier (fraction-done)
   "Bézier scrolling algorithm.
