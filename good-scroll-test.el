@@ -111,7 +111,7 @@ Draw a vertical line at FRACTION-DONE."
       (aset bitmap y (make-vector width 0)))
     ;; Plot progress line
     (let ((x (truncate (* fraction-done 0.99 width))))
-      (dotimes (y width)
+      (dotimes (y height)
         (aset (aref bitmap y) x 1)))
     ;; Plot control points
     (let ((x1 (truncate (* good-scroll-bezier--x1 0.99 width)))
