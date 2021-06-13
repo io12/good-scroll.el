@@ -108,7 +108,14 @@ The dimensions of the bitmap are given by WIDTH and HEIGHT."
     ;; Initialize rows
     (dotimes (y height)
       (aset bitmap y (make-vector width 0)))
-    ;; Flip a bit in each column
+    ;; Plot control points
+    (let ((x1 (truncate (* good-scroll-bezier--x1 0.99 width)))
+          (x2 (truncate (* good-scroll-bezier--x2 0.99 width)))
+          (y1 (truncate (* good-scroll-bezier--y1 0.99 height)))
+          (y2 (truncate (* good-scroll-bezier--y2 0.99 height))))
+      (aset (aref bitmap y1) x1 1)
+      (aset (aref bitmap y2) x2 1))
+    ;; Set a bit in each column (as part of the curve)
     (dotimes (x width)
       (let* ((tt (good-scroll-bezier--t-given-x (/ (float x) width)
                                                 good-scroll-bezier--x1
