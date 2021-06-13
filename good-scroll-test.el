@@ -99,6 +99,47 @@
       (test-case 1234.56 1.0 50 20 1000.0 1.0)
       (test-case 1234.56 10.0 50 20 1000.0 1.0))))
 
+(defun good-scroll-test-bezier-bitmap (width height)
+  "Return a bitmap of the current Bézier curve.
+Return a vector of vectors of integers representing the bitmap.
+Each integer is a pixel, and is zero for black and one for white.
+The dimensions of the bitmap are given by WIDTH and HEIGHT."
+  (let ((bitmap (make-vector height nil)))
+    ;; Initialize rows
+    (dotimes (y height)
+      (aset bitmap y (make-vector width 0)))
+    ;; Flip a bit in each column
+    (dotimes (x width)
+      (let* ((tt (good-scroll-bezier--t-given-x (/ (float x) width)
+                                                good-scroll-bezier--x1
+                                                good-scroll-bezier--x2))
+             (y-frac (good-scroll-bezier--calc tt
+                                               good-scroll-bezier--y1
+                                               good-scroll-bezier--y2))
+             (y (truncate (* y-frac height))))
+        (aset (aref bitmap y) x 1)))
+    bitmap))
+
+(defun good-scroll-test-bezier-image (width height)
+  "Return a string with a PBM image of the current Bézier curve.
+The dimensions of the image are given by WIDTH and HEIGHT."
+  (format "P1\n# good-scroll test bitmap\n%d %d\n%s"
+          width
+          height
+          (mapconcat (lambda (row) (mapconcat #'number-to-string row " "))
+                     (reverse (good-scroll-test-bezier-bitmap width height))
+                     "\n")))
+
+(defun good-scroll-test-bezier-image-display (width height)
+  "Display an image of the current Bézier curve.
+The dimensions of the image are given by WIDTH and HEIGHT."
+  (let ((buffer (get-buffer-create " *good-scroll-test-bezier-image-display*")))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (insert-image
+       (create-image (good-scroll-test-bezier-image width height) nil t)))
+    (pop-to-buffer buffer)))
+
 
 
 (provide 'good-scroll-test)
