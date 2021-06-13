@@ -156,7 +156,8 @@ Draw a vertical line at FRACTION-DONE."
       (insert-image
        (create-image (good-scroll-test-bezier-image width height fraction-done)
                      nil
-                     t)))
+                     t
+                     :scale 1)))
     (pop-to-buffer buffer)))
 
 
