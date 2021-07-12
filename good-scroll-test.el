@@ -105,67 +105,6 @@
       (test-case 1234.56 1.0 50 20 1000.0 1.0)
       (test-case 1234.56 10.0 50 20 1000.0 1.0))))
 
-(defun good-scroll-test-bezier-bitmap (width height fraction-done)
-  "Return a bitmap of the current Bézier curve.
-Return a vector of vectors of integers representing the bitmap.
-Each integer is a pixel, and is zero for black and one for white.
-The dimensions of the bitmap are given by WIDTH and HEIGHT.
-Draw a vertical line at FRACTION-DONE."
-  (let ((bitmap (make-vector height nil)))
-    ;; Initialize rows
-    (dotimes (y height)
-      (aset bitmap y (make-vector width 0)))
-    ;; Plot progress line
-    (let ((x (truncate (* fraction-done 0.99 width))))
-      (dotimes (y height)
-        (aset (aref bitmap y) x 1)))
-    ;; Plot control points
-    (let ((x1 (truncate (* good-scroll-bezier--x1 0.99 width)))
-          (x2 (truncate (* good-scroll-bezier--x2 0.99 width)))
-          (y1 (truncate (* good-scroll-bezier--y1 0.99 height)))
-          (y2 (truncate (* good-scroll-bezier--y2 0.99 height))))
-      (aset (aref bitmap y1) x1 1)
-      (aset (aref bitmap y2) x2 1))
-    ;; Set a bit in each column (as part of the curve)
-    (dotimes (x width)
-      (let* ((tt (good-scroll-bezier--t-given-x (/ (float x) width)
-                                                good-scroll-bezier--x1
-                                                good-scroll-bezier--x2))
-             (y-frac (good-scroll-bezier--calc tt
-                                               good-scroll-bezier--y1
-                                               good-scroll-bezier--y2))
-             (y (truncate (* y-frac height))))
-        (aset (aref bitmap y) x 1)))
-    bitmap))
-
-(defun good-scroll-test-bezier-image (width height fraction-done)
-  "Return a string with a PBM image of the current Bézier curve.
-The dimensions of the image are given by WIDTH and HEIGHT.
-Draw a vertical line at FRACTION-DONE."
-  (format "P1\n# good-scroll test bitmap\n%d %d\n%s"
-          width
-          height
-          (mapconcat (lambda (row) (mapconcat #'number-to-string row " "))
-                     (reverse (good-scroll-test-bezier-bitmap width
-                                                              height
-                                                              fraction-done))
-                     "\n")))
-
-(defun good-scroll-test-bezier-image-display (width height fraction-done)
-  "Display an image of the current Bézier curve.
-The dimensions of the image are given by WIDTH and HEIGHT.
-Draw a vertical line at FRACTION-DONE."
-  (cl-assert (<= 0.0 fraction-done 1.0))
-  (let ((buffer (get-buffer-create " *good-scroll-test-bezier-image-display*")))
-    (with-current-buffer buffer
-      (erase-buffer)
-      (insert-image
-       (create-image (good-scroll-test-bezier-image width height fraction-done)
-                     nil
-                     t
-                     :scale 1)))
-    (pop-to-buffer buffer)))
-
 
 
 (provide 'good-scroll-test)

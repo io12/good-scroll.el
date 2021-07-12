@@ -106,6 +106,12 @@ The value of X must be in the interval [0,1]."
 
 ;;;; Integration with `good-scroll'
 
+(defgroup good-scroll-bezier nil
+  "Good-scroll Bézier scrolling algorithm"
+  :group 'good-scroll)
+
+;;;;; Bézier curve control points
+
 (defvar good-scroll-bezier--x1 nil
   "X coordinate of first control point.")
 (defvar good-scroll-bezier--y1 nil
@@ -115,6 +121,8 @@ The value of X must be in the interval [0,1]."
 (defvar good-scroll-bezier--y2 1.0
   "Y coordinate of second control point.")
 
+;;;;; Information about previous scroll event
+
 (defvar good-scroll-bezier--prev-time 0.0
   "Time of the last received scroll event.
 This is used for checking for new scroll events.")
@@ -122,6 +130,22 @@ This is used for checking for new scroll events.")
 (defvar good-scroll-bezier--prev-direction 0
   "Direction of the last received scroll event.
 This is used for checking if the direction changed in a scroll event.")
+
+;;;;; Bézier curve visualization options
+
+(defcustom good-scroll-bezier-image-display nil
+  "When non-nil, display an animation of the current Bézier curve.
+Because of garbage collector pauses, this is very slow."
+  :group 'good-scroll-bezier
+  :type 'boolean)
+
+(defcustom good-scroll-bezier-image-size 50
+  "Size of Bézier curve image to draw.
+When the variable `good-scroll-bezier-image-display' is non-nil,
+this is the side length of the image in pixels.
+Larger values may have significantly worse performance."
+  :group 'good-scroll-bezier
+  :type 'integer)
 
 (defun good-scroll-bezier--set-points (velocity)
   "Update the control points.
@@ -215,9 +239,13 @@ Update the internal Bézier curve on new scroll events."
                                      good-scroll-bezier--prev-direction)
                                   0)))
 
-    ;; (let ((window (selected-window)))
-    ;;   (good-scroll-test-bezier-image-display 50 50 fraction-done)
-    ;;   (select-window window))
+    ;; Update Bézier curve visualization
+    (when good-scroll-bezier-image-display
+      (let ((window (selected-window)))
+        (good-scroll-bezier-image-display good-scroll-bezier-image-size
+                                          good-scroll-bezier-image-size
+                                          fraction-done)
+        (select-window window)))
 
     ;; New scroll event received?
     (when (/= good-scroll-bezier--prev-time good-scroll-start-time)
@@ -233,6 +261,71 @@ Update the internal Bézier curve on new scroll events."
     (setq good-scroll-bezier--prev-direction good-scroll-direction)
 
     (good-scroll-bezier--position fraction-done)))
+
+
+
+;;;;; Visualize image of Bézier curve in a separate window
+
+(defun good-scroll-bezier--bitmap (width height fraction-done)
+  "Return a bitmap of the current Bézier curve.
+Return a vector of vectors of integers representing the bitmap.
+Each integer is a pixel, and is zero for black and one for white.
+The dimensions of the bitmap are given by WIDTH and HEIGHT.
+Draw a vertical line at FRACTION-DONE."
+  (let ((bitmap (make-vector height nil)))
+    ;; Initialize rows
+    (dotimes (y height)
+      (aset bitmap y (make-vector width 0)))
+    ;; Plot progress line
+    (let ((x (truncate (* fraction-done 0.99 width))))
+      (dotimes (y height)
+        (aset (aref bitmap y) x 1)))
+    ;; Plot control points
+    (let ((x1 (truncate (* good-scroll-bezier--x1 0.99 width)))
+          (x2 (truncate (* good-scroll-bezier--x2 0.99 width)))
+          (y1 (truncate (* good-scroll-bezier--y1 0.99 height)))
+          (y2 (truncate (* good-scroll-bezier--y2 0.99 height))))
+      (aset (aref bitmap y1) x1 1)
+      (aset (aref bitmap y2) x2 1))
+    ;; Set a bit in each column (as part of the curve)
+    (dotimes (x width)
+      (let* ((tt (good-scroll-bezier--t-given-x (/ (float x) width)
+                                                good-scroll-bezier--x1
+                                                good-scroll-bezier--x2))
+             (y-frac (good-scroll-bezier--calc tt
+                                               good-scroll-bezier--y1
+                                               good-scroll-bezier--y2))
+             (y (truncate (* y-frac height))))
+        (aset (aref bitmap y) x 1)))
+    bitmap))
+
+(defun good-scroll-bezier--image (width height fraction-done)
+  "Return a string with a PBM image of the current Bézier curve.
+The dimensions of the image are given by WIDTH and HEIGHT.
+Draw a vertical line at FRACTION-DONE."
+  (format "P1\n# good-scroll test bitmap\n%d %d\n%s"
+          width
+          height
+          (mapconcat (lambda (row) (mapconcat #'number-to-string row " "))
+                     (reverse (good-scroll-bezier--bitmap width
+                                                          height
+                                                          fraction-done))
+                     "\n")))
+
+(defun good-scroll-bezier-image-display (width height fraction-done)
+  "Display an image of the current Bézier curve.
+The dimensions of the image are given by WIDTH and HEIGHT.
+Draw a vertical line at FRACTION-DONE."
+  (cl-assert (<= 0.0 fraction-done 1.0))
+  (let ((buffer (get-buffer-create " *good-scroll-bezier-image-display*")))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (insert-image
+       (create-image (good-scroll-bezier--image width height fraction-done)
+                     nil
+                     t
+                     :scale 1)))
+    (pop-to-buffer buffer)))
 
 
 
