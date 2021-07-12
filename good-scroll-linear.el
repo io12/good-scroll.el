@@ -37,7 +37,7 @@
 Return the next position in pixel lines.
 This works by linearly interpolating position."
   (let* ((elapsed (- (float-time) good-scroll-start-time))
-         (fraction-done (/ elapsed good-scroll-duration)))
+         (fraction-done (min 1.0 (/ elapsed good-scroll-duration))))
     (round (- (* fraction-done
                  (+ good-scroll-traveled good-scroll-destination))
               good-scroll-traveled))))
