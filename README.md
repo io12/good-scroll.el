@@ -41,13 +41,13 @@ A timer that runs every `good-scroll-render-rate` seconds
 calculates the expected position and actually scrolls the window to it.
 To make the window scrolled partially through a line,
 `good-scroll` updates the window's
-[*vscroll* (vertical scroll)](https://www.gnu.org/software/emacs/manual/html_node/elisp/Vertical-Scrolling.html)
+[_vscroll_ (vertical scroll)](https://www.gnu.org/software/emacs/manual/html_node/elisp/Vertical-Scrolling.html)
 position.
 
 ### Why is performance sometimes bad?
 
 Scrolling sometimes pauses or stutters.
-It's unclear *exactly* why,
+It's unclear _exactly_ why,
 but one factor is that Emacs lacks animation support.
 Emacs has timers for updating the screen contents,
 which is enough for playing simple animated GIF files,
@@ -64,7 +64,7 @@ also aim to improve scrolling in Emacs,
 but none of them involve scrolling by pixel lines, only by text lines.
 The built-in
 [`pixel-scroll`](https://git.savannah.gnu.org/cgit/emacs.git/tree/lisp/pixel-scroll.el)
-*does* implement pixel line scrolling,
+_does_ implement pixel line scrolling,
 but, unlike `good-scroll`, does not support dynamic scrolling velocity.
 
 ### Why is this file written in Markdown and not Org?
