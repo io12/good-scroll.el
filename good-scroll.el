@@ -108,7 +108,7 @@ For example, -12 means scrolling down 12 pixels.")
 (defvar good-scroll-start-time nil
   "Start time of the most recent scroll.")
 
-(defvar good-scroll--direction 0
+(defvar good-scroll-direction 0
   "Direction of the most recent scroll.
 This should be an integer. Positive means up and negative means down.")
 
@@ -246,12 +246,12 @@ A negative STEP means to scroll down. This is a helper function for
     (setq good-scroll-destination
           (+ step
              ;; Reset destination if scroll changed direction
-             (if (> (* step good-scroll--direction) 0)
+             (if (> (* step good-scroll-direction) 0)
                  good-scroll-destination
                0))
           good-scroll-start-time (float-time)
           good-scroll-traveled 0
-          good-scroll--direction step
+          good-scroll-direction step
           good-scroll--window (selected-window))))
 
 (defun good-scroll--cached-point-top-dirty-p ()
@@ -272,29 +272,27 @@ progress. This is called by the timer `good-scroll--timer' every
 `good-scroll-render-rate' seconds."
   (let ((inhibit-redisplay t)) ; TODO: Does this do anything?
     (when (eq (selected-window) good-scroll--window)
-      (let* ((elapsed-time (- (float-time) good-scroll-start-time))
-             (fraction-done (min 1.0 (/ elapsed-time good-scroll-duration))))
-        (unless (zerop good-scroll-destination)
-          (let ((position-next-try
-                 (funcall good-scroll-algorithm fraction-done))
-                (position-next-actual))
-            (cl-assert (<= (abs position-next-try)
-                           (abs good-scroll-destination)))
-            (when (good-scroll--cached-point-top-dirty-p)
-              (setq good-scroll--cached-point-top nil))
-            (setq position-next-actual (good-scroll--go-to position-next-try))
-            (setq good-scroll-traveled (+ good-scroll-traveled
-                                          position-next-actual)
-                  good-scroll-destination (- good-scroll-destination
-                                             position-next-actual)
-                  good-scroll--prev-point (point)
-                  good-scroll--prev-window-start (window-start)
-                  good-scroll--prev-vscroll (window-vscroll nil t))
-            ;; If we didn't jump the position as much as we wanted,
-            ;; then we must be trying to scroll past the edge of the buffer.
-            ;; This interrupts the scroll, so reset the destination to zero.
-            (when (/= position-next-try position-next-actual)
-              (setq good-scroll-destination 0))))))))
+      (unless (zerop good-scroll-destination)
+        (let ((position-next-try
+               (funcall good-scroll-algorithm))
+              (position-next-actual))
+          (cl-assert (<= (abs position-next-try)
+                         (abs good-scroll-destination)))
+          (when (good-scroll--cached-point-top-dirty-p)
+            (setq good-scroll--cached-point-top nil))
+          (setq position-next-actual (good-scroll--go-to position-next-try))
+          (setq good-scroll-traveled (+ good-scroll-traveled
+                                        position-next-actual)
+                good-scroll-destination (- good-scroll-destination
+                                           position-next-actual)
+                good-scroll--prev-point (point)
+                good-scroll--prev-window-start (window-start)
+                good-scroll--prev-vscroll (window-vscroll nil t))
+          ;; If we didn't jump the position as much as we wanted,
+          ;; then we must be trying to scroll past the edge of the buffer.
+          ;; This interrupts the scroll, so reset the destination to zero.
+          (when (/= position-next-try position-next-actual)
+            (setq good-scroll-destination 0)))))))
 
 (defun good-scroll--first-y ()
   "Return the cursor's first possible pixel y coordinate.

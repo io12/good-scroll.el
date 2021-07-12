@@ -32,14 +32,15 @@
 
 ;;; Code:
 
-(defun good-scroll-linear (fraction-done)
+(defun good-scroll-linear ()
   "Linear scrolling algorithm.
-Return the next position in pixel lines when the scroll is FRACTION-DONE done.
+Return the next position in pixel lines.
 This works by linearly interpolating position."
-  (round (- (* fraction-done
-               (+ good-scroll-traveled
-                  good-scroll-destination))
-            good-scroll-traveled)))
+  (let* ((elapsed (- (float-time) good-scroll-start-time))
+         (fraction-done (/ elapsed good-scroll-duration)))
+    (round (- (* fraction-done
+                 (+ good-scroll-traveled good-scroll-destination))
+              good-scroll-traveled))))
 
 (provide 'good-scroll-linear)
 

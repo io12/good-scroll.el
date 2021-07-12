@@ -115,9 +115,13 @@ The value of X must be in the interval [0,1]."
 (defvar good-scroll-bezier--y2 1.0
   "Y coordinate of second control point.")
 
-(defvar good-scroll-bezier--prev-time nil
+(defvar good-scroll-bezier--prev-time 0.0
   "Time of the last received scroll event.
 This is used for checking for new scroll events.")
+
+(defvar good-scroll-bezier--prev-direction 0
+  "Direction of the last received scroll event.
+This is used for checking if the direction changed in a scroll event.")
 
 (defun good-scroll-bezier--set-points (velocity)
   "Update the control points.
@@ -198,20 +202,37 @@ Assume the scroll's progress is FRACTION-DONE."
     ;; Actually update the control points
     (good-scroll-bezier--set-points velocity)))
 
-(defun good-scroll-bezier (fraction-done)
+(defun good-scroll-bezier ()
   "Bézier scrolling algorithm.
-Return the next position in pixel lines when the scroll is FRACTION-DONE done.
+Return the next position in pixel lines.
 Update the internal Bézier curve on new scroll events."
-  ;; New scroll event received?
-  (unless (equal good-scroll-bezier--prev-time
-                 good-scroll-start-time)
-    ;; Got a new scroll event, so update the Bézier curve.
-    (good-scroll-bezier--update fraction-done)
-    ;; Mark this scroll event as received
-    (setq good-scroll-bezier--prev-time
-          good-scroll-start-time))
+  (let* ((time (float-time))
+         (elapsed-time (- time good-scroll-start-time))
+         (prev-elapsed-time (- time good-scroll-bezier--prev-time))
+         (fraction-done (min 1.0 (/ elapsed-time good-scroll-duration)))
+         (prev-fraction-done (min 1.0 (/ prev-elapsed-time good-scroll-duration)))
+         (direction-changed-p (<= (* good-scroll-direction
+                                     good-scroll-bezier--prev-direction)
+                                  0)))
 
-  (good-scroll-bezier--position fraction-done))
+    ;; (let ((window (selected-window)))
+    ;;   (good-scroll-test-bezier-image-display 50 50 fraction-done)
+    ;;   (select-window window))
+
+    ;; New scroll event received?
+    (when (/= good-scroll-bezier--prev-time good-scroll-start-time)
+      ;; Got a new scroll event, so update the Bézier curve.
+      (if direction-changed-p
+          ;; Zero velocity if direction changed
+          (good-scroll-bezier--set-points 0.0)
+        ;; Maintain velocity if direction stayed the same
+        (good-scroll-bezier--update prev-fraction-done)))
+
+    ;; Mark this scroll event as received
+    (setq good-scroll-bezier--prev-time good-scroll-start-time)
+    (setq good-scroll-bezier--prev-direction good-scroll-direction)
+
+    (good-scroll-bezier--position fraction-done)))
 
 
 
