@@ -1,4 +1,5 @@
 [![MELPA](https://melpa.org/packages/good-scroll-badge.svg)](https://melpa.org/#/good-scroll)
+[![Check](https://github.com/io12/good-scroll.el/actions/workflows/check.yml/badge.svg)](https://github.com/io12/good-scroll.el/actions/workflows/check.yml)
 
 # `good-scroll.el`
 
