@@ -270,9 +270,14 @@ this leads to `good-scroll--cached-point-top' being invalidated."
 Update the window's vscroll and position in the buffer based on the scroll
 progress. This is called by the timer `good-scroll--timer' every
 `good-scroll-render-rate' seconds."
-  (let ((inhibit-redisplay t)) ; TODO: Does this do anything?
-    (when (eq (selected-window) good-scroll--window)
-      (unless (zerop good-scroll-destination)
+  ;; Check if the window that recieved the scroll event still exists and
+  ;; if there is distance to scroll.
+  (when (and (window-valid-p good-scroll--window)
+             (not (zerop good-scroll-destination)))
+    (let ((inhibit-redisplay t)) ; TODO: Does this do anything?
+      ;; Switch to the window that recieved the scroll event,
+      ;; which might be different from the previously selected window.
+      (with-selected-window good-scroll--window
         (let ((position-next-try
                (funcall good-scroll-algorithm))
               (position-next-actual))
