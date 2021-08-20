@@ -490,6 +490,7 @@ line in the selected window."
                     vscroll
                     line-height
                     rem
+                    (window-start)
                     good-scroll--cached-point-top
                     (good-scroll--point-top))
   (if (< (+ vscroll pos) line-height)
@@ -522,6 +523,7 @@ line."
   (good-scroll--log "good-scroll--go-to-up-full"
                     pos
                     rem
+                    (window-start)
                     good-scroll--cached-point-top
                     (good-scroll--point-top))
   ;; Are we at the end of the buffer?
@@ -541,8 +543,7 @@ line."
                             (point))
                       t)
     (good-scroll--log "good-scroll--go-to-up-full after"
-                      pos
-                      rem
+                      (window-start)
                       good-scroll--cached-point-top
                       (good-scroll--point-top))
     (- pos rem)))
