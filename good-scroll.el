@@ -125,6 +125,10 @@ for performance reasons.")
 (defvar good-scroll--prev-vscroll nil
   "The output of `(window-vscroll nil t)' after the last render.")
 
+(defvar good-scroll--pre-command-point nil
+  "The value of point before the most recent command executed.
+This is used to test if a command moved the cursor.")
+
 ;;;###autoload
 (define-minor-mode good-scroll-mode
   "Good pixel line scrolling"
@@ -142,7 +146,9 @@ for performance reasons.")
         (when good-scroll-persist-vscroll-line-move
           (advice-add 'line-move :around #'good-scroll--advice-line-move))
         (when good-scroll-persist-vscroll-window-scroll
-          (add-hook 'window-scroll-functions #'good-scroll--restore-vscroll)))
+          (add-hook 'window-scroll-functions #'good-scroll--restore-vscroll))
+        (add-hook 'pre-command-hook #'good-scroll--pre-command)
+        (add-hook 'post-command-hook #'good-scroll--post-command))
     ;; Disable major mode
     (progn
       (setq mwheel-scroll-up-function #'scroll-up
@@ -150,7 +156,9 @@ for performance reasons.")
       (when (timerp good-scroll--timer)
         (cancel-timer good-scroll--timer))
       (advice-remove 'line-move #'good-scroll--advice-line-move)
-      (remove-hook 'window-scroll-functions #'good-scroll--restore-vscroll))))
+      (remove-hook 'window-scroll-functions #'good-scroll--restore-vscroll)
+      (remove-hook 'pre-command-hook #'good-scroll--pre-command)
+      (remove-hook 'post-command-hook #'good-scroll--post-command))))
 
 (defmacro good-scroll--log (string &rest forms)
   "When `good-scroll--debug' is non-nil, log a message.
@@ -184,6 +192,23 @@ This function is used as a hook in `window-scroll-functions'."
   (when (good-scroll--window-and-window-start-same-p)
     (good-scroll--log "restore vscroll" good-scroll--prev-vscroll)
     (set-window-vscroll nil good-scroll--prev-vscroll t)))
+
+(defun good-scroll--pre-command ()
+  "This function is called in `pre-command-hook'.
+It saves the value of point in `good-scroll--pre-command-point' so that
+`good-scroll--post-command' can check whether the most recent command
+moved the cursor."
+  (setq good-scroll--pre-command-point (point)))
+
+(defun good-scroll--post-command ()
+  "This function is called in `post-command-hook'.
+If the most recent command made the cursor overlap the top of the window,
+set the window's vscroll to zero to avoid the overlap."
+  (when (and good-scroll--pre-command-point
+             (/= good-scroll--pre-command-point (point))
+             (not (zerop (window-vscroll nil t)))
+             (good-scroll--point-at-top-p))
+    (set-window-vscroll nil 0 t)))
 
 (defmacro good-scroll--slow-assert (form)
   "When `good-scroll--debug' is non-nil, call `assert' on FORM.
