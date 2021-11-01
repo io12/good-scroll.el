@@ -60,8 +60,7 @@ For changes of this option to take effect, good-scroll mode must be restarted."
 
 (defcustom good-scroll-algorithm #'good-scroll-bezier
   "The scrolling animation algorithm to use.
-If implementing your own algorithm, it should be a function with one argument,
-a float from 0.0 to 1.0 representing the progress of the scroll.
+If implementing your own algorithm, it should be a function with zero arguments.
 The function should return a target position in pixel-lines relative to the top
 of the window.
 See the built-in algorithms for inspiration."
