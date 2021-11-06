@@ -82,8 +82,7 @@ For changing this variable to take effect, good-scroll mode must be restarted."
   "If non-nil, restore a saved vscroll when `window-scroll-functions' is called.
 There are aren't many cases where this makes a difference,
 but one example is buffers with other buffers embedded inside them,
-such as with the polymode package.
-For changing this variable to take effect, good-scroll mode must be restarted."
+such as with the polymode package."
   :group 'good-scroll
   :type 'boolean)
 
@@ -129,6 +128,10 @@ for performance reasons.")
   "The value of point before the most recent command executed.
 This is used to test if a command moved the cursor.")
 
+(defvar good-scroll--pre-command-window-start nil
+  "The output of `window-start' before the most recent command executed.
+This is used to test if a command scrolled the window.")
+
 ;;;###autoload
 (define-minor-mode good-scroll-mode
   "Good pixel line scrolling"
@@ -145,8 +148,7 @@ This is used to test if a command moved the cursor.")
               (run-at-time 0 good-scroll-render-rate #'good-scroll--render))
         (when good-scroll-persist-vscroll-line-move
           (advice-add 'line-move :around #'good-scroll--advice-line-move))
-        (when good-scroll-persist-vscroll-window-scroll
-          (add-hook 'window-scroll-functions #'good-scroll--restore-vscroll))
+        (add-hook 'window-scroll-functions #'good-scroll--after-window-scroll)
         (add-hook 'pre-command-hook #'good-scroll--pre-command)
         (add-hook 'post-command-hook #'good-scroll--post-command))
     ;; Disable major mode
@@ -156,7 +158,7 @@ This is used to test if a command moved the cursor.")
       (when (timerp good-scroll--timer)
         (cancel-timer good-scroll--timer))
       (advice-remove 'line-move #'good-scroll--advice-line-move)
-      (remove-hook 'window-scroll-functions #'good-scroll--restore-vscroll)
+      (remove-hook 'window-scroll-functions #'good-scroll--after-window-scroll)
       (remove-hook 'pre-command-hook #'good-scroll--pre-command)
       (remove-hook 'post-command-hook #'good-scroll--post-command))))
 
@@ -179,35 +181,57 @@ and FORMS-STRING contains the evaluated values of FORMS."
 If the selected window, and window start is the same as
 it was in in the last render, return non-nil.
 Otherwise, return nil."
-  (and good-scroll--window
-       good-scroll--prev-window-start
-       (eq good-scroll--window (selected-window))
-       (= good-scroll--prev-window-start (window-start))))
+  (and (eq good-scroll--window (selected-window))
+       (eq good-scroll--prev-window-start (window-start))))
 
-(defun good-scroll--restore-vscroll (&rest _args)
-  "Restore the saved vscroll value.
-If nothing but the vscroll changed since the last render,
-restore the previous vscroll value.
-This function is used as a hook in `window-scroll-functions'."
-  (when (good-scroll--window-and-window-start-same-p)
-    (good-scroll--log "restore vscroll" good-scroll--prev-vscroll)
-    (set-window-vscroll nil good-scroll--prev-vscroll t)))
+(defun good-scroll--after-window-scroll (&rest _args)
+  "This function is used as a hook in `window-scroll-functions'."
+  ;; (message "aws ws=%s p=%s" (window-start) (point))
+  (when (eq good-scroll--window (selected-window))
+
+    ;; If nothing but the vscroll changed since the last render,
+    ;; restore the previous vscroll value.
+    (when (and good-scroll-persist-vscroll-window-scroll
+                   (eq good-scroll--prev-window-start (window-start)))
+          (good-scroll--log "restore vscroll" good-scroll--prev-vscroll)
+          (set-window-vscroll nil good-scroll--prev-vscroll t))
+
+    ;; (redisplay)
+    ;; Check if most recent command scrolled the window
+    (let ((ws (window-start)))
+      (when (and (zerop good-scroll-destination)
+                 (not (equal good-scroll--pre-command-window-start ws)))
+        (set-window-start nil (min ws good-scroll--pre-command-window-start))
+        (goto-char (max ws good-scroll--pre-command-window-start))
+        (good-scroll-move
+         (* (good-scroll--point-top)
+          (signum (- ws good-scroll--pre-command-window-start))))
+        (goto-char (max good-scroll--pre-command-window-start
+                        good-scroll--pre-command-point))
+        (set-window-start nil good-scroll--pre-command-window-start)))))
+        ;; (redisplay)))))
+        ;; (message "set ws=%s p=%s" (window-start) (point))))))
+
 
 (defun good-scroll--pre-command ()
   "This function is called in `pre-command-hook'.
 It saves the value of point in `good-scroll--pre-command-point' so that
 `good-scroll--post-command' can check whether the most recent command
 moved the cursor."
-  (setq good-scroll--pre-command-point (point)))
+  (setq good-scroll--pre-command-point (point))
+  (setq good-scroll--pre-command-window-start (window-start)))
 
 (defun good-scroll--post-command ()
   "This function is called in `post-command-hook'.
 If the most recent command made the cursor overlap the top of the window,
 set the window's vscroll to zero to avoid the overlap."
-  (when (and good-scroll--pre-command-point
-             (/= good-scroll--pre-command-point (point))
+  ;; (message "pc ws=%s p=%s" (window-start) (point))
+  ;; Check if the most recent command moved the cursor to overlap the window top
+  (when (and (not (equal good-scroll--pre-command-point (point)))
              (not (zerop (window-vscroll nil t)))
              (good-scroll--point-at-top-p))
+    ;; The cursor overlaps the top of the window.
+    ;; Zero vscroll to avoid this.
     (set-window-vscroll nil 0 t)))
 
 (defmacro good-scroll--slow-assert (form)
@@ -294,6 +318,8 @@ this leads to `good-scroll--cached-point-top' being invalidated."
 Update the window's vscroll and position in the buffer based on the scroll
 progress. This is called by the timer `good-scroll--timer' every
 `good-scroll-render-rate' seconds."
+  ;; (redisplay)
+  ;; (message "r ws=%s p=%s" (window-start) (point))
   ;; Check if the window that recieved the scroll event still exists and
   ;; if there is distance to scroll.
   (when (and (window-valid-p good-scroll--window)
@@ -339,6 +365,7 @@ below the tab and header lines."
   ;; to topmost visible part of the cursor.
   ;; The actual top of the cursor might be above this if the top of the window
   ;; overlaps the cursor.
+  ;; (message "ws=%s p=%s" (window-start) (point))
   (let* ((p-vis-top (- (nth 1 (pos-visible-in-window-p nil nil t))
                        (good-scroll--first-y))))
     (if (zerop p-vis-top)
@@ -353,6 +380,7 @@ below the tab and header lines."
   (when (= -1 (vertical-motion -1))
     (setq good-scroll--cached-point-top
           (- good-scroll--cached-point-top (line-pixel-height)))))
+  ;; (message "u ws=%s p=%s" (window-start) (point)))
 
 (defun good-scroll--move-point-down ()
   "Move the cursor down and update `good-scroll--cached-point-top' accordingly."
@@ -364,6 +392,7 @@ below the tab and header lines."
       ;; `vertical-motion' moves it to the end of the line.
       ;; This causes a jitter, so avoid it.
       (beginning-of-line))))
+  ;; (message "d ws=%s p=%s" (window-start) (point)))
 
 (defun good-scroll--window-usable-height ()
   "Return the usable height of the selected window.
