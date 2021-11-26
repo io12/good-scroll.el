@@ -566,6 +566,7 @@ line."
                             (vertical-motion 1)
                             (point))
                       t)
+    (run-window-scroll-functions)
     (good-scroll--log "good-scroll--go-to-up-full after"
                       (window-start)
                       good-scroll--cached-point-top
@@ -627,6 +628,7 @@ Return the next target scroll position. Assume POS > VSCROLL."
                             (vertical-motion -1)
                             (point))
                       t)
+    (run-window-scroll-functions)
     (good-scroll--log "good-scroll--go-to-down-full after"
                       (good-scroll--point-top))
     (+ pos vscroll
