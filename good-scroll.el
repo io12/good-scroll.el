@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'cl-extra)
 
 (require 'good-scroll-bezier)
 (require 'good-scroll-linear)
@@ -184,17 +185,29 @@ Otherwise, return nil."
   (and (eq good-scroll--window (selected-window))
        (eq good-scroll--prev-window-start (window-start))))
 
+(defvar good-scroll--post-redisplay-point nil)
+(defvar good-scroll--post-redisplay-window-start nil)
+
+(defun good-scroll--post-redisplay ()
+  (when good-scroll--post-redisplay-point
+    (goto-char good-scroll--post-redisplay-point)
+    (setq good-scroll--post-redisplay-point nil))
+  (when good-scroll--post-redisplay-window-start
+    (set-window-start nil good-scroll--post-redisplay-window-start)
+    (setq good-scroll--post-redisplay-window-start nil)))
+
 (defun good-scroll--after-window-scroll (&rest _args)
   "This function is used as a hook in `window-scroll-functions'."
+  (message "WSF")
   ;; (message "aws ws=%s p=%s" (window-start) (point))
   (when (eq good-scroll--window (selected-window))
 
     ;; If nothing but the vscroll changed since the last render,
     ;; restore the previous vscroll value.
     (when (and good-scroll-persist-vscroll-window-scroll
-                   (eq good-scroll--prev-window-start (window-start)))
-          (good-scroll--log "restore vscroll" good-scroll--prev-vscroll)
-          (set-window-vscroll nil good-scroll--prev-vscroll t))
+               (eq good-scroll--prev-window-start (window-start)))
+      (good-scroll--log "restore vscroll" good-scroll--prev-vscroll)
+      (set-window-vscroll nil good-scroll--prev-vscroll t))
 
     ;; (redisplay)
     ;; Check if most recent command scrolled the window
@@ -205,10 +218,12 @@ Otherwise, return nil."
         (goto-char (max ws good-scroll--pre-command-window-start))
         (good-scroll-move
          (* (good-scroll--point-top)
-          (signum (- ws good-scroll--pre-command-window-start))))
-        (goto-char (max good-scroll--pre-command-window-start
-                        good-scroll--pre-command-point))
-        (set-window-start nil good-scroll--pre-command-window-start)))))
+            (cl-signum (- ws good-scroll--pre-command-window-start))))
+        (setq good-scroll--post-redisplay-point
+              (max good-scroll--pre-command-window-start
+                   good-scroll--pre-command-point))
+        (setq good-scroll--post-redisplay-window-start
+              good-scroll--pre-command-window-start)))))
         ;; (redisplay)))))
         ;; (message "set ws=%s p=%s" (window-start) (point))))))
 
@@ -218,6 +233,7 @@ Otherwise, return nil."
 It saves the value of point in `good-scroll--pre-command-point' so that
 `good-scroll--post-command' can check whether the most recent command
 moved the cursor."
+  (message "PRE CMD")
   (setq good-scroll--pre-command-point (point))
   (setq good-scroll--pre-command-window-start (window-start)))
 
@@ -225,6 +241,7 @@ moved the cursor."
   "This function is called in `post-command-hook'.
 If the most recent command made the cursor overlap the top of the window,
 set the window's vscroll to zero to avoid the overlap."
+  (message "POST CMD")
   ;; (message "pc ws=%s p=%s" (window-start) (point))
   ;; Check if the most recent command moved the cursor to overlap the window top
   (when (and (not (equal good-scroll--pre-command-point (point)))
@@ -318,6 +335,7 @@ this leads to `good-scroll--cached-point-top' being invalidated."
 Update the window's vscroll and position in the buffer based on the scroll
 progress. This is called by the timer `good-scroll--timer' every
 `good-scroll-render-rate' seconds."
+  (good-scroll--post-redisplay)
   ;; (redisplay)
   ;; (message "r ws=%s p=%s" (window-start) (point))
   ;; Check if the window that recieved the scroll event still exists and
